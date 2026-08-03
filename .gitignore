@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+*storybook.log
+storybook-static
+
+# font source artifacts (woff2 lives in public/fonts)
+/Pretendard-1.3.9.zip
+/Pretendard-1.3.9/

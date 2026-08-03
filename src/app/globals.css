@@ -1,26 +1,330 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   Fonts — Pretendard Variable
+   Source file: public/fonts/PretendardVariable.woff2
+   ============================================================================ */
+@font-face {
+  font-family: "Pretendard Variable";
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/PretendardVariable.woff2") format("woff2-variations");
+}
+
+/* ============================================================================
+   Design Tokens — Color (primitive + semantic) & Font family
+   Source of truth: design.pen (Pencil variables)
+   Semantic tokens reference primitives only — no raw hex outside primitives.
+   `static` forces every token to be emitted as a CSS variable, even when it is
+   consumed via var() at runtime rather than through a Tailwind utility class.
+   ============================================================================ */
+@theme static {
+  /* ---- Font family ------------------------------------------------------- */
+  --font-sans: "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+
+  /* ---- Primitive · Brand (orange/coral) ---------------------------------- */
+  --color-brand-50: #fff3ef;
+  --color-brand-100: #ffe3da;
+  --color-brand-200: #ffc7b5;
+  --color-brand-300: #ffa284;
+  --color-brand-400: #fb7551;
+  --color-brand-500: #f1512a;
+  --color-brand-600: #d93e1b;
+  --color-brand-700: #b42f14;
+  --color-brand-800: #8f2815;
+  --color-brand-900: #742417;
+  --color-brand-950: #3f0f09;
+
+  /* ---- Primitive · Neutral ----------------------------------------------- */
+  --color-neutral-50: #f7f7f6;
+  --color-neutral-100: #ededec;
+  --color-neutral-200: #d9d9d7;
+  --color-neutral-300: #bcbcb9;
+  --color-neutral-400: #999997;
+  --color-neutral-500: #7a7a78;
+  --color-neutral-600: #5e5e5c;
+  --color-neutral-700: #474746;
+  --color-neutral-800: #2e2e2d;
+  --color-neutral-900: #1c1c1c;
+  --color-neutral-950: #0f0f0f;
+
+  /* ---- Primitive · Red (error) ------------------------------------------- */
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+  --color-red-950: #450a0a;
+
+  /* ---- Primitive · Green (success) --------------------------------------- */
+  --color-green-50: #effdf4;
+  --color-green-100: #dafbe6;
+  --color-green-200: #b7f4ce;
+  --color-green-300: #82e8ac;
+  --color-green-400: #46d383;
+  --color-green-500: #22c55e;
+  --color-green-600: #16a34a;
+  --color-green-700: #15803d;
+  --color-green-800: #166534;
+  --color-green-900: #14532d;
+  --color-green-950: #052e16;
+
+  /* ---- Primitive · Amber (warning) --------------------------------------- */
+  --color-amber-50: #fff8eb;
+  --color-amber-100: #feefc7;
+  --color-amber-200: #fdde8a;
+  --color-amber-300: #fcc94d;
+  --color-amber-400: #fab424;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97d06;
+  --color-amber-700: #b45a09;
+  --color-amber-800: #92460e;
+  --color-amber-900: #78390f;
+  --color-amber-950: #451d03;
+
+  /* ---- Primitive · Blue (info) ------------------------------------------- */
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
+  --color-blue-950: #172554;
+
+  /* ---- Semantic · Text --------------------------------------------------- */
+  --color-text-default: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-700);
+  --color-text-subtle: var(--color-neutral-600);
+  --color-text-muted: var(--color-neutral-400);
+  --color-text-brand: var(--color-brand-600);
+  --color-text-on-brand: var(--color-neutral-50);
+  --color-text-on-inverse: var(--color-neutral-50);
+  --color-text-error: var(--color-red-600);
+  --color-text-success: var(--color-green-700);
+  --color-text-warning: var(--color-amber-700);
+  --color-text-info: var(--color-blue-700);
+
+  /* ---- Semantic · Background --------------------------------------------- */
+  --color-background-default: var(--color-neutral-50);
+  --color-background-surface: var(--color-neutral-50);
+  --color-background-subtle: var(--color-neutral-100);
+  --color-background-muted: var(--color-neutral-100);
+  --color-background-inverse: var(--color-neutral-900);
+  --color-background-brand: var(--color-brand-600);
+  --color-background-brand-subtle: var(--color-brand-50);
+  --color-background-error: var(--color-red-600);
+  --color-background-error-subtle: var(--color-red-50);
+  --color-background-success-subtle: var(--color-green-50);
+  --color-background-warning-subtle: var(--color-amber-50);
+  --color-background-info-subtle: var(--color-blue-50);
+
+  /* ---- Semantic · Border ------------------------------------------------- */
+  --color-border-default: var(--color-neutral-200);
+  --color-border-strong: var(--color-neutral-300);
+  --color-border-subtle: var(--color-neutral-100);
+  --color-border-brand: var(--color-brand-500);
+  --color-border-error: var(--color-red-500);
+  --color-border-error-subtle: var(--color-red-200);
+  --color-border-success: var(--color-green-500);
+  --color-border-warning: var(--color-amber-500);
+  --color-border-info: var(--color-blue-500);
+}
+
+/* ============================================================================
+   Design Tokens — Typography & Spacing primitives (raw CSS variables)
+   Kept in :root (not @theme) so they never collide with Tailwind's own
+   spacing / font-size utility scales.
+   ============================================================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* font size */
+  --font-size-100: 12px;
+  --font-size-200: 14px;
+  --font-size-300: 16px;
+  --font-size-400: 20px;
+  --font-size-500: 24px;
+  --font-size-600: 28px;
+  --font-size-700: 32px;
+  --font-size-800: 36px;
+  --font-size-900: 40px;
+
+  /* font weight */
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* line height */
+  --font-line-height-tight: 1.2;
+  --font-line-height-normal: 1.4;
+
+  /* letter spacing — 공통 자간 -2% */
+  --font-letter-spacing: -0.02em;
+
+  /* spacing */
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ============================================================================
+   Typography — type styles (stable design-system classes)
+   Usage: <h1 class="text-display-lg">…</h1>
+   ============================================================================ */
+.text-display-lg {
+  font-size: var(--font-size-800);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-letter-spacing);
+}
+.text-display-md {
+  font-size: var(--font-size-700);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-letter-spacing);
+}
+.text-display-sm {
+  font-size: var(--font-size-600);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-letter-spacing);
+}
+.text-heading-lg {
+  font-size: var(--font-size-500);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-letter-spacing);
+}
+.text-heading-md {
+  font-size: var(--font-size-400);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-letter-spacing);
+}
+.text-heading-sm {
+  font-size: var(--font-size-300);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-letter-spacing);
+}
+.text-body-lg {
+  font-size: var(--font-size-300);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--font-line-height-normal);
+  letter-spacing: var(--font-letter-spacing);
+}
+.text-body-md {
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--font-line-height-normal);
+  letter-spacing: var(--font-letter-spacing);
+}
+.text-label-lg {
+  font-size: var(--font-size-200);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--font-line-height-normal);
+  letter-spacing: var(--font-letter-spacing);
+}
+.text-label-md {
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--font-line-height-normal);
+  letter-spacing: var(--font-letter-spacing);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ============================================================================
+   Base
+   ============================================================================ */
+body {
+  background-color: var(--color-background-default);
+  color: var(--color-text-default);
+  font-family: var(--font-sans);
+  letter-spacing: var(--font-letter-spacing);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================================
+   Keyframes (design-system components)
+   ============================================================================ */
+@keyframes ds-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
+.ds-spin {
+  animation: ds-spin 0.7s linear infinite;
+}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes ds-skeleton {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+.ds-skeleton {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-neutral-100) 25%,
+    var(--color-neutral-200) 37%,
+    var(--color-neutral-100) 63%
+  );
+  background-size: 200% 100%;
+  animation: ds-skeleton 1.4s ease infinite;
+}
+
+/* ============================================================================
+   Form field box — shared by TextField / Select (focus & error via CSS state)
+   Focus renders as a 2px brand border without layout shift (1px border + inset
+   ring). data-error keeps the error color even while focused.
+   ============================================================================ */
+.ds-field-box {
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-background-default);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.ds-field-box:focus-within {
+  border-color: var(--color-border-brand);
+  box-shadow: inset 0 0 0 1px var(--color-border-brand);
+}
+.ds-field-box[data-error="true"] {
+  border-color: var(--color-border-error);
+}
+.ds-field-box[data-error="true"]:focus-within {
+  border-color: var(--color-border-error);
+  box-shadow: inset 0 0 0 1px var(--color-border-error);
+}
+.ds-field-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--color-text-default);
+  letter-spacing: var(--font-letter-spacing);
+}
+.ds-field-input::placeholder {
+  color: var(--color-text-muted);
+}
+.ds-select-item:not(:disabled):hover,
+.ds-menu-item:not(:disabled):hover {
+  background: var(--color-background-subtle);
 }
