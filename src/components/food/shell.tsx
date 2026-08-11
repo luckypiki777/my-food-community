@@ -10,6 +10,7 @@
  * while their content aligns to the same container.
  */
 
+import { useEffect } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { IconButton } from "@/design-system/components/IconButton";
 
@@ -184,6 +185,41 @@ export function Fab({
           boxShadow: "0 8px 20px rgba(241, 81, 42, 0.4)",
         }}
       />
+    </div>
+  );
+}
+
+/**
+ * Full-screen sub-flow layered over the current screen (place search / map picker).
+ *
+ * 하위 흐름을 라우팅으로 빼지 않고 위에 덮는 이유: 아래에 있는 등록 폼의 입력 상태
+ * (사진·이름·후기)를 그대로 살려두기 위해서다. 화면을 갈아끼우면 폼이 언마운트되면서
+ * 지금까지 쓴 내용이 사라진다.
+ */
+export function Overlay({ children, label }: { children: ReactNode; label: string }) {
+  // 덮여 있는 동안 뒤 화면이 같이 스크롤되지 않게 막는다.
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, []);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={label}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        overflowY: "auto",
+        background: "var(--color-background-default)",
+      }}
+    >
+      {children}
     </div>
   );
 }

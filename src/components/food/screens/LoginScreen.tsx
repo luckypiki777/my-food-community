@@ -1,14 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/design-system/components/Button";
 import { Icon } from "@/design-system/Icon";
 import { LOGIN_HERO } from "../data";
-import type { AppNav } from "../types";
 
-export function LoginScreen({ nav }: { nav: AppNav }) {
+export function LoginScreen() {
+  const [pending, setPending] = useState(false);
+
+  /**
+   * BFF가 PKCE 챌린지를 만들고 구글 동의 화면으로 넘긴다.
+   * fetch가 아니라 전체 이동이어야 한다 — 리다이렉트 체인이 브라우저 주소창을 따라가야 하기 때문.
+   */
   const start = () => {
-    nav.toast("환영해요! 구로 맛집을 시작합니다", "success");
-    nav.navigate("main");
+    setPending(true);
+    window.location.href = "/api/auth/login?provider=google";
   };
 
   return (
@@ -134,7 +140,14 @@ export function LoginScreen({ nav }: { nav: AppNav }) {
             </span>
           </div>
 
-          <Button variant="secondary" size="lg" style={{ width: "100%" }} onClick={start}>
+          <Button
+            variant="secondary"
+            size="lg"
+            style={{ width: "100%" }}
+            onClick={start}
+            loading={pending}
+            disabled={pending}
+          >
             <span
               style={{
                 display: "inline-flex",

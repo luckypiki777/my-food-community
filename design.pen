@@ -4,8 +4,8 @@
     {
       "type": "frame",
       "id": "ihJPa",
-      "x": 0,
-      "y": 0,
+      "x": 106,
+      "y": -1287,
       "name": "01 Main Page",
       "clip": true,
       "width": 360,
@@ -408,7 +408,8 @@
                   "type": "ref",
                   "ref": "W97kmB",
                   "name": "icon",
-                  "fill": "$color-text-subtle"
+                  "fill": "$color-text-subtle",
+                  "icon": "map-pin"
                 },
                 "THT13": {
                   "content": "지도"
@@ -491,8 +492,8 @@
     {
       "type": "frame",
       "id": "LVUW5",
-      "x": 7,
-      "y": 887,
+      "x": 113,
+      "y": -400,
       "name": "Restaurant Card",
       "reusable": true,
       "width": 328,
@@ -564,706 +565,6 @@
                   "ref": "o7giza",
                   "name": "bookmark-icon",
                   "fill": "$color-text-subtle"
-                }
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "frame",
-      "id": "LS2D7",
-      "x": 440,
-      "y": 0,
-      "name": "02 Detail Page",
-      "clip": true,
-      "width": 360,
-      "fill": "$color-background-default",
-      "layout": "vertical",
-      "children": [
-        {
-          "id": "A7bNwM",
-          "type": "ref",
-          "ref": "U5Knu",
-          "name": "Top Navigation",
-          "width": "fill_container",
-          "fill": "$color-background-inverse",
-          "stroke": "$color-background-inverse",
-          "descendants": {
-            "AbHZi": {
-              "content": "맛집 상세",
-              "fill": "$color-text-on-inverse"
-            }
-          }
-        },
-        {
-          "type": "frame",
-          "id": "LyiL2",
-          "name": "Detail Hero Image",
-          "metadata": {
-            "type": "unsplash",
-            "username": "portuguesegravity",
-            "link": "https://unsplash.com/@portuguesegravity",
-            "author": "Portuguese Gravity"
-          },
-          "clip": true,
-          "width": "fill_container",
-          "height": 230,
-          "fill": {
-            "type": "image",
-            "enabled": true,
-            "url": "images/generated-1785376309570.png",
-            "mode": "fill"
-          },
-          "layout": "none"
-        },
-        {
-          "type": "frame",
-          "id": "Q3NtH",
-          "name": "Detail Body",
-          "width": "fill_container",
-          "fill": "$color-background-default",
-          "layout": "vertical",
-          "gap": "$spacing-24",
-          "padding": [
-            18,
-            "$spacing-16",
-            "$spacing-16",
-            "$spacing-16"
-          ],
-          "children": [
-            {
-              "type": "frame",
-              "id": "fzspg",
-              "name": "Title Block",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 6,
-              "children": [
-                {
-                  "id": "O1s4U",
-                  "type": "ref",
-                  "ref": "Cduy9",
-                  "name": "Detail Name",
-                  "content": "광명 시골보리밥",
-                  "fill": "$color-text-default"
-                },
-                {
-                  "id": "r1D22",
-                  "type": "ref",
-                  "ref": "NDYRT",
-                  "name": "Detail Meta",
-                  "content": "한식 · 보리밥 · 3월 등록",
-                  "fill": "$color-text-muted"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "eI8L8",
-              "name": "Info Chips",
-              "width": "fill_container",
-              "gap": "$spacing-8",
-              "children": [
-                {
-                  "id": "u2a1mb",
-                  "type": "ref",
-                  "ref": "bbVBw",
-                  "name": "주차 넉넉 Chip",
-                  "descendants": {
-                    "oFf9F": {
-                      "id": "A7i1l",
-                      "type": "ref",
-                      "ref": "BchIS",
-                      "name": "icon",
-                      "fill": "$color-text-subtle"
-                    },
-                    "v4xOw": {
-                      "content": "주차 넉넉"
-                    }
-                  }
-                },
-                {
-                  "id": "gTqWT",
-                  "type": "ref",
-                  "ref": "bbVBw",
-                  "name": "아이 의자 Chip",
-                  "descendants": {
-                    "oFf9F": {
-                      "id": "k9NVY2",
-                      "type": "ref",
-                      "ref": "lO8zG",
-                      "name": "icon",
-                      "fill": "$color-text-subtle"
-                    },
-                    "v4xOw": {
-                      "content": "아이 의자"
-                    }
-                  }
-                },
-                {
-                  "id": "RxybA",
-                  "type": "ref",
-                  "ref": "bbVBw",
-                  "name": "차로 24분 Chip",
-                  "descendants": {
-                    "oFf9F": {
-                      "id": "Sood6",
-                      "type": "ref",
-                      "ref": "XBjPx",
-                      "name": "icon",
-                      "fill": "$color-text-subtle"
-                    },
-                    "v4xOw": {
-                      "content": "차로 24분"
-                    }
-                  }
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "j1LRW",
-              "name": "Review Section",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 10,
-              "children": [
-                {
-                  "id": "cUAu2",
-                  "type": "ref",
-                  "ref": "yXH3o",
-                  "name": "Review Title",
-                  "content": "이용 후기",
-                  "fill": "$color-text-default"
-                },
-                {
-                  "id": "yHLIg",
-                  "type": "ref",
-                  "ref": "NDYRT",
-                  "name": "Review Body",
-                  "content": "주말 점심에 다녀왔는데 보리밥 정식이 정갈하고 반찬이 계속 손이 갔어요. 좌석이 넓어서 아이랑 가도 부담 없고, 근처 공영주차장도 가까워요. 붐비지 않아서 여유롭게 먹고 왔습니다.",
-                  "fill": "$color-text-secondary",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "Krqqx",
-              "name": "Address Section",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 10,
-              "children": [
-                {
-                  "type": "frame",
-                  "id": "o1U4Q",
-                  "name": "Address Header",
-                  "width": "fill_container",
-                  "justifyContent": "space_between",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "id": "kz90T",
-                      "type": "ref",
-                      "ref": "yXH3o",
-                      "name": "Address Title",
-                      "content": "주소",
-                      "fill": "$color-text-default"
-                    },
-                    {
-                      "type": "frame",
-                      "id": "ApAR0",
-                      "name": "Copy Button",
-                      "gap": 4,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "id": "wLrJB",
-                          "type": "ref",
-                          "ref": "zMOx5",
-                          "name": "Copy Icon",
-                          "fill": "$color-text-muted"
-                        },
-                        {
-                          "id": "mpY2w",
-                          "type": "ref",
-                          "ref": "Cx2Az",
-                          "name": "Copy Text",
-                          "content": "복사",
-                          "fill": "$color-text-muted"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "id": "iJIvC",
-                  "type": "ref",
-                  "ref": "NDYRT",
-                  "name": "Address Text",
-                  "content": "경기 광명시 오리로 854번길 12, 1층",
-                  "fill": "$color-text-secondary"
-                },
-                {
-                  "type": "frame",
-                  "id": "ztPse",
-                  "name": "Detail Map",
-                  "clip": true,
-                  "width": "fill_container",
-                  "height": 130,
-                  "fill": "$color-background-muted",
-                  "cornerRadius": 14,
-                  "layout": "none",
-                  "children": [
-                    {
-                      "type": "path",
-                      "id": "RWaXD",
-                      "x": 0,
-                      "y": 40,
-                      "name": "Road 1",
-                      "geometry": "M0 30c90-26 200 30 328-18",
-                      "viewBox": [
-                        0,
-                        0,
-                        328,
-                        48
-                      ],
-                      "fill": "#00000000",
-                      "width": 328,
-                      "height": 44,
-                      "stroke": "$color-background-default",
-                      "strokeWidth": 12,
-                      "strokeLinecap": "round"
-                    },
-                    {
-                      "type": "path",
-                      "id": "Pi9OU",
-                      "x": 24,
-                      "y": 78,
-                      "name": "Road 2",
-                      "geometry": "M0 6c80 32 180-14 280 22",
-                      "viewBox": [
-                        0,
-                        0,
-                        280,
-                        36
-                      ],
-                      "fill": "#00000000",
-                      "width": 280,
-                      "height": 30,
-                      "stroke": "$color-border-default",
-                      "strokeWidth": 8,
-                      "strokeLinecap": "round"
-                    },
-                    {
-                      "type": "frame",
-                      "id": "m7JUmp",
-                      "layoutPosition": "absolute",
-                      "x": 150,
-                      "y": 40,
-                      "name": "Map Pin",
-                      "width": 44,
-                      "height": 44,
-                      "fill": "$color-background-brand",
-                      "cornerRadius": 22,
-                      "effect": {
-                        "type": "shadow",
-                        "shadowType": "outer",
-                        "color": "#00000026",
-                        "offset": {
-                          "x": 0,
-                          "y": 4
-                        },
-                        "blur": 10
-                      },
-                      "justifyContent": "center",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "id": "fjLjV",
-                          "type": "ref",
-                          "ref": "XSRxT",
-                          "name": "Map Pin Icon",
-                          "fill": "$color-text-on-brand"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "QYJFv",
-          "name": "Detail Action Bar",
-          "width": "fill_container",
-          "fill": "$color-background-surface",
-          "stroke": "$color-border-subtle",
-          "strokeWidth": {
-            "top": 1
-          },
-          "gap": "$spacing-12",
-          "padding": [
-            12,
-            "$spacing-16",
-            "$spacing-16",
-            "$spacing-16"
-          ],
-          "alignItems": "center",
-          "children": [
-            {
-              "id": "MnEup",
-              "type": "ref",
-              "ref": "pa9xP",
-              "name": "Save Button",
-              "descendants": {
-                "jTLTo": {
-                  "id": "yNa5g",
-                  "type": "ref",
-                  "ref": "o7giza",
-                  "name": "save-icon",
-                  "fill": "$color-text-default"
-                },
-                "j4Qlz": {
-                  "content": "저장"
-                }
-              }
-            },
-            {
-              "id": "oNDFo",
-              "type": "ref",
-              "ref": "oikUd",
-              "name": "Route Button",
-              "width": "fill_container",
-              "descendants": {
-                "vlnw5": {
-                  "id": "v7SSo",
-                  "type": "ref",
-                  "ref": "OAucH",
-                  "name": "route-icon",
-                  "fill": "$color-text-on-brand"
-                },
-                "JfADu": {
-                  "content": "길찾기"
-                }
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "frame",
-      "id": "AHF2Z",
-      "x": 880,
-      "y": 0,
-      "name": "03 Register Error State",
-      "clip": true,
-      "width": 360,
-      "fill": "$color-background-default",
-      "layout": "vertical",
-      "children": [
-        {
-          "id": "BPgtE",
-          "type": "ref",
-          "ref": "U5Knu",
-          "name": "Top Navigation",
-          "width": "fill_container",
-          "fill": "$color-background-inverse",
-          "stroke": "$color-background-inverse",
-          "descendants": {
-            "AbHZi": {
-              "content": "맛집 등록",
-              "fill": "$color-text-on-inverse"
-            }
-          }
-        },
-        {
-          "type": "frame",
-          "id": "EiF0e",
-          "name": "Register Body",
-          "width": "fill_container",
-          "fill": "$color-background-default",
-          "layout": "vertical",
-          "gap": "$spacing-16",
-          "padding": "$spacing-16",
-          "children": [
-            {
-              "type": "frame",
-              "id": "MslFi",
-              "name": "Error Banner",
-              "width": "fill_container",
-              "fill": "$color-background-default",
-              "cornerRadius": 12,
-              "stroke": "$color-border-error",
-              "strokeWidth": 1,
-              "gap": 10,
-              "padding": 14,
-              "alignItems": "center",
-              "children": [
-                {
-                  "id": "Ia4eJ",
-                  "type": "ref",
-                  "ref": "PX57l",
-                  "name": "Banner Icon",
-                  "fill": "$color-text-error"
-                },
-                {
-                  "type": "frame",
-                  "id": "VX3eY",
-                  "name": "Banner Text",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 2,
-                  "children": [
-                    {
-                      "id": "tr7OX",
-                      "type": "ref",
-                      "ref": "Cx2Az",
-                      "name": "Banner Title",
-                      "content": "저장할 수 없어요",
-                      "fill": "$color-text-error"
-                    },
-                    {
-                      "id": "bU3Gn",
-                      "type": "ref",
-                      "ref": "g1k4c",
-                      "name": "Banner Sub",
-                      "content": "사진, 설명, 주소를 확인해 주세요.",
-                      "fill": "$color-text-error"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "id": "lh3Ku",
-              "type": "ref",
-              "ref": "B6TEK0",
-              "name": "Photo Uploader",
-              "width": "fill_container",
-              "descendants": {
-                "yKOnI": {
-                  "content": "사진 추가 · 대표 사진 1장은 꼭 필요해요"
-                },
-                "wxzF8/Pu4dt": {
-                  "content": "사진 선택"
-                }
-              }
-            },
-            {
-              "id": "ATdDR",
-              "type": "ref",
-              "ref": "oLMad",
-              "name": "Name Field",
-              "width": "fill_container",
-              "descendants": {
-                "M9Rcb": {
-                  "content": "맛집 이름"
-                },
-                "FMEXn": {
-                  "enabled": false
-                },
-                "YcGUb": {
-                  "content": "광명 시골보리밥",
-                  "fill": "$color-text-default"
-                },
-                "AlnoW": {
-                  "enabled": false
-                }
-              }
-            },
-            {
-              "id": "M6dSzq",
-              "type": "ref",
-              "ref": "DbGXo",
-              "name": "Review Field",
-              "width": "fill_container",
-              "descendants": {
-                "t4YBR": {
-                  "content": "어떤 곳인가요?"
-                },
-                "z6L6z9": {
-                  "content": "맛있어요"
-                },
-                "p2IPa": {
-                  "content": "후기는 10자 이상 입력해 주세요."
-                },
-                "W8b8y": {
-                  "content": "4/10"
-                }
-              }
-            },
-            {
-              "type": "frame",
-              "id": "vBD8F",
-              "name": "Address Field",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": "$spacing-8",
-              "children": [
-                {
-                  "id": "strVL",
-                  "type": "ref",
-                  "ref": "Cx2Az",
-                  "name": "Address Label",
-                  "content": "주소",
-                  "fill": "$color-text-default"
-                },
-                {
-                  "type": "frame",
-                  "id": "b7Su8",
-                  "name": "Address Row",
-                  "width": "fill_container",
-                  "gap": "$spacing-8",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "id": "uakbn",
-                      "type": "ref",
-                      "ref": "oLMad",
-                      "name": "Address Input",
-                      "width": "fill_container",
-                      "descendants": {
-                        "M9Rcb": {
-                          "enabled": false
-                        },
-                        "FMEXn": {
-                          "enabled": false
-                        },
-                        "YcGUb": {
-                          "content": "주소를 검색해 주세요"
-                        },
-                        "AlnoW": {
-                          "enabled": false
-                        }
-                      }
-                    },
-                    {
-                      "id": "SGGfs",
-                      "type": "ref",
-                      "ref": "kEohG",
-                      "name": "Address Search Button",
-                      "descendants": {
-                        "xlcCD": {
-                          "enabled": false
-                        },
-                        "R3A0h": {
-                          "content": "검색"
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "SRxR1",
-                  "name": "Address Error",
-                  "gap": 4,
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "id": "v5GQx",
-                      "type": "ref",
-                      "ref": "iX5RW",
-                      "name": "Address Error Icon",
-                      "fill": "$color-text-error"
-                    },
-                    {
-                      "id": "TK9VT",
-                      "type": "ref",
-                      "ref": "g1k4c",
-                      "name": "Address Error Text",
-                      "content": "주소 선택 후 지도를 확인해 주세요.",
-                      "fill": "$color-text-error"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "rnA8s",
-              "name": "Map Placeholder",
-              "width": "fill_container",
-              "height": 120,
-              "fill": "$color-background-muted",
-              "cornerRadius": 14,
-              "layout": "vertical",
-              "gap": 8,
-              "justifyContent": "center",
-              "alignItems": "center",
-              "children": [
-                {
-                  "id": "V4An0",
-                  "type": "ref",
-                  "ref": "W97kmB",
-                  "name": "Map Placeholder Icon",
-                  "fill": "$color-text-muted"
-                },
-                {
-                  "id": "YA8uA",
-                  "type": "ref",
-                  "ref": "NDYRT",
-                  "name": "Map Placeholder Text",
-                  "content": "주소를 선택하면 지도가 표시돼요",
-                  "fill": "$color-text-muted"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "f9Qw0",
-          "name": "Register Action Bar",
-          "width": "fill_container",
-          "fill": "$color-background-surface",
-          "stroke": "$color-border-subtle",
-          "strokeWidth": {
-            "top": 1
-          },
-          "gap": "$spacing-12",
-          "padding": [
-            12,
-            "$spacing-16",
-            "$spacing-16",
-            "$spacing-16"
-          ],
-          "alignItems": "center",
-          "children": [
-            {
-              "id": "vb6mp",
-              "type": "ref",
-              "ref": "pa9xP",
-              "name": "Temp Save Button",
-              "descendants": {
-                "jTLTo": {
-                  "enabled": false
-                },
-                "j4Qlz": {
-                  "content": "임시저장"
-                }
-              }
-            },
-            {
-              "id": "fJy3D",
-              "type": "ref",
-              "ref": "q4klAT",
-              "name": "Submit Button",
-              "width": "fill_container",
-              "descendants": {
-                "tQUKT": {
-                  "enabled": false
-                },
-                "Fkh0X": {
-                  "content": "필수 항목 확인"
                 }
               }
             }
@@ -3271,6 +2572,126 @@
                           "width": 32,
                           "height": 32,
                           "icon": "house",
+                          "library": "lucide",
+                          "fill": "$color-text-default"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "h7H4DP",
+                  "name": "row/map-pin",
+                  "width": "fill_container",
+                  "stroke": "$color-border-subtle",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "strokeAlignment": "inner",
+                  "gap": 12,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "vZCkR",
+                      "name": "label",
+                      "fill": "$color-text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": 148,
+                      "content": "map-pin",
+                      "fontFamily": "$font-family",
+                      "fontSize": "$font-size-200",
+                      "fontWeight": "$font-weight-regular",
+                      "letterSpacing": -0.28
+                    },
+                    {
+                      "type": "frame",
+                      "id": "icZbc",
+                      "name": "cell-16",
+                      "width": 52,
+                      "height": 44,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "zdyUt",
+                          "name": "map-pin/16",
+                          "reusable": true,
+                          "width": 16,
+                          "height": 16,
+                          "icon": "map-pin",
+                          "library": "lucide",
+                          "fill": "$color-text-default"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "p5AUdJ",
+                      "name": "cell-20",
+                      "width": 52,
+                      "height": 44,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "E1WhEz",
+                          "name": "map-pin/20",
+                          "reusable": true,
+                          "width": 20,
+                          "height": 20,
+                          "icon": "map-pin",
+                          "library": "lucide",
+                          "fill": "$color-text-default"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Ukhv8",
+                      "name": "cell-24",
+                      "width": 52,
+                      "height": 44,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "G38Je",
+                          "name": "map-pin/24",
+                          "reusable": true,
+                          "width": 24,
+                          "height": 24,
+                          "icon": "map-pin",
+                          "library": "lucide",
+                          "fill": "$color-text-default"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "y7YyLc",
+                      "name": "cell-32",
+                      "width": 52,
+                      "height": 44,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "giEU9",
+                          "name": "map-pin/32",
+                          "reusable": true,
+                          "width": 32,
+                          "height": 32,
+                          "icon": "map-pin",
                           "library": "lucide",
                           "fill": "$color-text-default"
                         }
@@ -25810,8 +25231,8 @@
     {
       "type": "frame",
       "id": "bIX1c",
-      "x": 1313,
-      "y": 0,
+      "x": 597,
+      "y": -1296,
       "name": "04 Login Page",
       "clip": true,
       "width": 360,
@@ -25896,7 +25317,8 @@
                           "type": "ref",
                           "ref": "W97kmB",
                           "name": "logo-icon",
-                          "fill": "$color-text-on-brand"
+                          "fill": "$color-text-on-brand",
+                          "icon": "map-pin"
                         }
                       ]
                     },
@@ -26042,8 +25464,8 @@
     {
       "type": "frame",
       "id": "fDMAa",
-      "x": 1740,
-      "y": 0,
+      "x": 1066,
+      "y": -1287,
       "name": "05 My Page",
       "clip": true,
       "width": 360,
@@ -26453,6 +25875,1590 @@
                 },
                 "vP6yg": {
                   "content": "마이"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "sG2wP",
+      "x": 108,
+      "y": -118,
+      "name": "04 Register (장소 입력)",
+      "clip": true,
+      "width": 360,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "CPvqu",
+          "type": "ref",
+          "ref": "U5Knu",
+          "name": "Top Navigation",
+          "width": "fill_container",
+          "fill": "$color-background-inverse",
+          "stroke": "$color-background-inverse",
+          "descendants": {
+            "AbHZi": {
+              "content": "맛집 등록",
+              "fill": "$color-text-on-inverse"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "C7HSL",
+          "name": "Register Body",
+          "width": 360,
+          "height": 830,
+          "fill": "$color-background-default",
+          "layout": "vertical",
+          "gap": "$spacing-16",
+          "padding": "$spacing-16",
+          "children": [
+            {
+              "type": "frame",
+              "id": "w3G65",
+              "name": "Error Banner",
+              "width": "fill_container",
+              "fill": "$color-background-default",
+              "cornerRadius": 12,
+              "stroke": "$color-border-error",
+              "strokeWidth": 1,
+              "gap": 10,
+              "padding": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "lo0Vg",
+                  "type": "ref",
+                  "ref": "PX57l",
+                  "name": "Banner Icon",
+                  "fill": "$color-text-error"
+                },
+                {
+                  "type": "frame",
+                  "id": "ZBr1N",
+                  "name": "Banner Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "id": "YaaL8",
+                      "type": "ref",
+                      "ref": "Cx2Az",
+                      "name": "Banner Title",
+                      "content": "저장할 수 없어요",
+                      "fill": "$color-text-error"
+                    },
+                    {
+                      "id": "kv98p",
+                      "type": "ref",
+                      "ref": "g1k4c",
+                      "name": "Banner Sub",
+                      "content": "사진, 설명, 주소를 확인해 주세요.",
+                      "fill": "$color-text-error"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "jZAHL",
+              "type": "ref",
+              "ref": "B6TEK0",
+              "name": "Photo Uploader",
+              "width": "fill_container",
+              "descendants": {
+                "yKOnI": {
+                  "content": "사진 추가 · 대표 사진 1장은 꼭 필요해요"
+                },
+                "wxzF8/Pu4dt": {
+                  "content": "사진 선택"
+                }
+              }
+            },
+            {
+              "id": "cczCE",
+              "type": "ref",
+              "ref": "oLMad",
+              "name": "Name Field",
+              "width": "fill_container",
+              "descendants": {
+                "M9Rcb": {
+                  "content": "맛집 이름"
+                },
+                "FMEXn": {
+                  "enabled": false
+                },
+                "YcGUb": {
+                  "content": "광명 시골보리밥",
+                  "fill": "$color-text-default"
+                },
+                "AlnoW": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "id": "jiLZO",
+              "type": "ref",
+              "ref": "DbGXo",
+              "name": "Review Field",
+              "width": "fill_container",
+              "descendants": {
+                "t4YBR": {
+                  "content": "어떤 곳인가요?"
+                },
+                "z6L6z9": {
+                  "content": "맛있어요"
+                },
+                "p2IPa": {
+                  "content": "후기는 10자 이상 입력해 주세요."
+                },
+                "W8b8y": {
+                  "content": "4/10"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "JfOwv",
+              "name": "Address Field",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": "$spacing-8",
+              "children": [
+                {
+                  "id": "Asf0j",
+                  "type": "ref",
+                  "ref": "Cx2Az",
+                  "name": "Address Label",
+                  "content": "주소",
+                  "fill": "$color-text-default"
+                },
+                {
+                  "type": "frame",
+                  "id": "VZgAz",
+                  "name": "Address Row",
+                  "width": "fill_container",
+                  "gap": "$spacing-8",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "i5jmpb",
+                      "type": "ref",
+                      "ref": "oLMad",
+                      "name": "Address Input",
+                      "width": "fill_container",
+                      "descendants": {
+                        "M9Rcb": {
+                          "enabled": false
+                        },
+                        "FMEXn": {
+                          "enabled": false
+                        },
+                        "YcGUb": {
+                          "content": "주소를 검색해 주세요"
+                        },
+                        "AlnoW": {
+                          "enabled": false
+                        }
+                      }
+                    },
+                    {
+                      "id": "rPpNH",
+                      "type": "ref",
+                      "ref": "kEohG",
+                      "name": "Address Search Button",
+                      "descendants": {
+                        "xlcCD": {
+                          "enabled": false
+                        },
+                        "R3A0h": {
+                          "content": "검색"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "hNmsF",
+                  "name": "장소 입력하기 Button",
+                  "width": "fill_container",
+                  "height": 48,
+                  "cornerRadius": 8,
+                  "stroke": "$color-border-strong",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    20
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "HLtw4",
+                      "type": "ref",
+                      "ref": "E1WhEz",
+                      "name": "icon-left",
+                      "fill": "$color-text-default"
+                    },
+                    {
+                      "id": "Y8u2MI",
+                      "type": "ref",
+                      "ref": "Cx2Az",
+                      "content": "장소 입력하기",
+                      "name": "label",
+                      "fill": "$color-text-default"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "K6Ikd",
+                  "name": "Address Error",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "eG2Uu",
+                      "type": "ref",
+                      "ref": "iX5RW",
+                      "name": "Address Error Icon",
+                      "fill": "$color-text-error"
+                    },
+                    {
+                      "id": "JLM8J",
+                      "type": "ref",
+                      "ref": "g1k4c",
+                      "name": "Address Error Text",
+                      "content": "주소 선택 후 지도를 확인해 주세요.",
+                      "fill": "$color-text-error"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "mIeep",
+              "name": "Map Placeholder",
+              "width": "fill_container",
+              "height": 120,
+              "fill": "$color-background-muted",
+              "cornerRadius": 14,
+              "layout": "vertical",
+              "gap": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "fY1dS",
+                  "type": "ref",
+                  "ref": "W97kmB",
+                  "name": "Map Placeholder Icon",
+                  "fill": "$color-text-muted"
+                },
+                {
+                  "id": "nCH3U",
+                  "type": "ref",
+                  "ref": "NDYRT",
+                  "name": "Map Placeholder Text",
+                  "content": "주소를 선택하면 지도가 표시돼요",
+                  "fill": "$color-text-muted"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Cv7CV",
+          "name": "Register Action Bar",
+          "width": "fill_container",
+          "fill": "$color-background-surface",
+          "stroke": "$color-border-subtle",
+          "strokeWidth": {
+            "top": 1
+          },
+          "gap": "$spacing-12",
+          "padding": [
+            12,
+            "$spacing-16",
+            "$spacing-16",
+            "$spacing-16"
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "M6avIC",
+              "type": "ref",
+              "ref": "pa9xP",
+              "name": "Temp Save Button",
+              "descendants": {
+                "jTLTo": {
+                  "enabled": false
+                },
+                "j4Qlz": {
+                  "content": "임시저장"
+                }
+              }
+            },
+            {
+              "id": "Y8kNU8",
+              "type": "ref",
+              "ref": "q4klAT",
+              "name": "Submit Button",
+              "width": "fill_container",
+              "descendants": {
+                "tQUKT": {
+                  "enabled": false
+                },
+                "Fkh0X": {
+                  "content": "필수 항목 확인"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Blzsp",
+      "x": 548,
+      "y": -118,
+      "name": "05 Place Register",
+      "clip": true,
+      "width": 360,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "m1MNSB",
+          "type": "ref",
+          "ref": "U5Knu",
+          "name": "Top Navigation",
+          "width": "fill_container",
+          "descendants": {
+            "AbHZi": {
+              "content": "장소 등록"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "Z4e1f",
+          "name": "Search Wrap",
+          "width": "fill_container",
+          "fill": "$color-background-default",
+          "layout": "vertical",
+          "gap": "$spacing-16",
+          "padding": "$spacing-16",
+          "children": [
+            {
+              "type": "frame",
+              "id": "jPUMG",
+              "name": "Search Section",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": "$spacing-8",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "NuALX",
+                  "name": "Search Row",
+                  "width": "fill_container",
+                  "gap": "$spacing-8",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "m6pEsk",
+                      "type": "ref",
+                      "ref": "oLMad",
+                      "name": "Search Input",
+                      "width": "fill_container",
+                      "descendants": {
+                        "M9Rcb": {
+                          "enabled": false
+                        },
+                        "FMEXn": {
+                          "id": "H9AKB",
+                          "type": "ref",
+                          "ref": "oCNNe",
+                          "name": "icon-left",
+                          "fill": "$color-text-muted"
+                        },
+                        "YcGUb": {
+                          "content": "구로디지털단지역",
+                          "fill": "$color-text-default"
+                        },
+                        "AlnoW": {
+                          "enabled": false
+                        }
+                      }
+                    },
+                    {
+                      "id": "XX6FV",
+                      "type": "ref",
+                      "ref": "kEohG",
+                      "name": "Search Button",
+                      "descendants": {
+                        "xlcCD": {
+                          "enabled": false
+                        },
+                        "R3A0h": {
+                          "content": "검색"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "s8Quo",
+          "name": "Map",
+          "width": "fill_container",
+          "height": 480,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/generated-1786071927388.png",
+            "mode": "fill"
+          },
+          "layout": "vertical",
+          "gap": 10,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "MBhjI",
+              "type": "ref",
+              "ref": "giEU9",
+              "name": "Map Pin",
+              "fill": "$color-text-brand"
+            },
+            {
+              "type": "frame",
+              "id": "J4xIri",
+              "layoutPosition": "absolute",
+              "x": 12,
+              "y": 12,
+              "name": "Naver Badge",
+              "fill": "#FFFFFF",
+              "cornerRadius": 8,
+              "stroke": "$color-border-default",
+              "strokeWidth": 1,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#00000022",
+                "offset": {
+                  "x": 0,
+                  "y": 1
+                },
+                "blur": 4
+              },
+              "gap": 6,
+              "padding": [
+                6,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "DCeQT",
+                  "name": "Naver Logo",
+                  "width": 20,
+                  "height": 20,
+                  "fill": "#03C75A",
+                  "cornerRadius": 5,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "O31rz",
+                      "name": "N",
+                      "fill": "#FFFFFF",
+                      "content": "N",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "$font-weight-bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "SABWx",
+                  "name": "Label",
+                  "fill": "$color-text-default",
+                  "content": "지도",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "$font-weight-semibold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "j2UMbz",
+          "name": "Bottom Wrap",
+          "width": "fill_container",
+          "fill": "$color-background-default",
+          "layout": "vertical",
+          "gap": "$spacing-16",
+          "padding": "$spacing-16",
+          "children": [
+            {
+              "type": "frame",
+              "id": "OMTPy",
+              "name": "Selected Address Box",
+              "width": "fill_container",
+              "fill": "$color-background-brand-subtle",
+              "cornerRadius": 12,
+              "stroke": "$color-border-brand",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "layout": "vertical",
+              "gap": "$spacing-8",
+              "padding": "$spacing-16",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "uCJiF",
+                  "name": "Address Head",
+                  "width": "fill_container",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "enL3K",
+                      "type": "ref",
+                      "ref": "E1WhEz",
+                      "name": "Pin Icon",
+                      "fill": "$color-text-brand"
+                    },
+                    {
+                      "id": "YxJ0R",
+                      "type": "ref",
+                      "ref": "g1k4c",
+                      "name": "Address Caption",
+                      "content": "선택한 위치",
+                      "fill": "$color-text-brand"
+                    }
+                  ]
+                },
+                {
+                  "id": "NItbL",
+                  "type": "ref",
+                  "ref": "w0M5r7",
+                  "name": "Address Text",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "서울 구로구 디지털로 300 지밸리비즈플라자",
+                  "fill": "$color-text-default"
+                }
+              ]
+            },
+            {
+              "id": "nbqdC",
+              "type": "ref",
+              "ref": "oikUd",
+              "name": "Submit Button",
+              "width": "fill_container",
+              "descendants": {
+                "vlnw5": {
+                  "enabled": false
+                },
+                "JfADu": {
+                  "content": "이 위치로 등록하기"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "CjCrG",
+      "x": 988,
+      "y": -118,
+      "name": "06 Place Search Results",
+      "clip": true,
+      "width": 360,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "yyucK",
+          "type": "ref",
+          "ref": "U5Knu",
+          "name": "Top Navigation",
+          "width": "fill_container",
+          "descendants": {
+            "AbHZi": {
+              "content": "장소 등록"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "n62gs",
+          "name": "Search Wrap",
+          "width": "fill_container",
+          "fill": "$color-background-default",
+          "stroke": "$color-border-subtle",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "gap": "$spacing-12",
+          "padding": [
+            "$spacing-12",
+            "$spacing-16"
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "ItL1I",
+              "type": "ref",
+              "ref": "UTmI9",
+              "name": "Search Input Focused",
+              "width": "fill_container",
+              "descendants": {
+                "gI9IK": {
+                  "enabled": false
+                },
+                "t6x9k": {
+                  "id": "vD5IG",
+                  "type": "ref",
+                  "ref": "oCNNe",
+                  "name": "icon-left",
+                  "fill": "$color-text-secondary"
+                },
+                "IHacq": {
+                  "content": "구로 국밥",
+                  "fill": "$color-text-default"
+                },
+                "UeMfe": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "id": "VjnDL",
+              "type": "ref",
+              "ref": "Cx2Az",
+              "name": "Cancel",
+              "content": "취소",
+              "fill": "$color-text-secondary"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "T0vJHV",
+          "name": "Results",
+          "width": "fill_container",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "VD9XI",
+              "name": "Results Header",
+              "width": "fill_container",
+              "fill": "$color-background-subtle",
+              "padding": [
+                "$spacing-8",
+                "$spacing-16"
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "UCtOq",
+                  "type": "ref",
+                  "ref": "g1k4c",
+                  "name": "Header Text",
+                  "content": "검색 결과 5",
+                  "fill": "$color-text-subtle"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "lx2Vf",
+              "name": "Result · 구로 국밥",
+              "width": "fill_container",
+              "fill": "$color-background-default",
+              "stroke": "$color-border-subtle",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": "$spacing-12",
+              "padding": [
+                "$spacing-12",
+                "$spacing-16"
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "Bawk1",
+                  "type": "ref",
+                  "ref": "E1WhEz",
+                  "name": "Pin",
+                  "fill": "$color-text-muted"
+                },
+                {
+                  "type": "frame",
+                  "id": "g46Qmq",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "id": "iHALE",
+                      "type": "ref",
+                      "ref": "w0M5r7",
+                      "name": "Name",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "구로 국밥",
+                      "fill": "$color-text-default"
+                    },
+                    {
+                      "id": "swf2H",
+                      "type": "ref",
+                      "ref": "g1k4c",
+                      "name": "Address",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "서울 구로구 디지털로26길 38",
+                      "fill": "$color-text-subtle"
+                    }
+                  ]
+                },
+                {
+                  "id": "WnSfJ",
+                  "type": "ref",
+                  "ref": "zl7k5",
+                  "name": "Chevron",
+                  "fill": "$color-text-muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "g8ma4",
+              "name": "Result · 신도림 손칼국수",
+              "width": "fill_container",
+              "fill": "$color-background-default",
+              "stroke": "$color-border-subtle",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": "$spacing-12",
+              "padding": [
+                "$spacing-12",
+                "$spacing-16"
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "uQmDf",
+                  "type": "ref",
+                  "ref": "E1WhEz",
+                  "name": "Pin",
+                  "fill": "$color-text-muted"
+                },
+                {
+                  "type": "frame",
+                  "id": "b7yt3o",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "id": "S7pUu",
+                      "type": "ref",
+                      "ref": "w0M5r7",
+                      "name": "Name",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "신도림 손칼국수",
+                      "fill": "$color-text-default"
+                    },
+                    {
+                      "id": "MT5dd",
+                      "type": "ref",
+                      "ref": "g1k4c",
+                      "name": "Address",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "서울 구로구 경인로 662",
+                      "fill": "$color-text-subtle"
+                    }
+                  ]
+                },
+                {
+                  "id": "UGtJd",
+                  "type": "ref",
+                  "ref": "zl7k5",
+                  "name": "Chevron",
+                  "fill": "$color-text-muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "PLXOu",
+              "name": "Result · 구로시장 옛날순대국",
+              "width": "fill_container",
+              "fill": "$color-background-default",
+              "stroke": "$color-border-subtle",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": "$spacing-12",
+              "padding": [
+                "$spacing-12",
+                "$spacing-16"
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "C2ojuN",
+                  "type": "ref",
+                  "ref": "E1WhEz",
+                  "name": "Pin",
+                  "fill": "$color-text-muted"
+                },
+                {
+                  "type": "frame",
+                  "id": "opePo",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "id": "MHObM",
+                      "type": "ref",
+                      "ref": "w0M5r7",
+                      "name": "Name",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "구로시장 옛날순대국",
+                      "fill": "$color-text-default"
+                    },
+                    {
+                      "id": "h1dQ2H",
+                      "type": "ref",
+                      "ref": "g1k4c",
+                      "name": "Address",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "서울 구로구 구로중앙로 235",
+                      "fill": "$color-text-subtle"
+                    }
+                  ]
+                },
+                {
+                  "id": "Y1ohys",
+                  "type": "ref",
+                  "ref": "zl7k5",
+                  "name": "Chevron",
+                  "fill": "$color-text-muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "cmMkC",
+              "name": "Result · 디지털단지 곱창천국",
+              "width": "fill_container",
+              "fill": "$color-background-default",
+              "stroke": "$color-border-subtle",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": "$spacing-12",
+              "padding": [
+                "$spacing-12",
+                "$spacing-16"
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "AvQdn",
+                  "type": "ref",
+                  "ref": "E1WhEz",
+                  "name": "Pin",
+                  "fill": "$color-text-muted"
+                },
+                {
+                  "type": "frame",
+                  "id": "CwziO",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "id": "hVk9s",
+                      "type": "ref",
+                      "ref": "w0M5r7",
+                      "name": "Name",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "디지털단지 곱창천국",
+                      "fill": "$color-text-default"
+                    },
+                    {
+                      "id": "Wth1j",
+                      "type": "ref",
+                      "ref": "g1k4c",
+                      "name": "Address",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "서울 구로구 디지털로 300",
+                      "fill": "$color-text-subtle"
+                    }
+                  ]
+                },
+                {
+                  "id": "tUoiE",
+                  "type": "ref",
+                  "ref": "zl7k5",
+                  "name": "Chevron",
+                  "fill": "$color-text-muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "W6IL7j",
+              "name": "Result · 개봉동 원조부대찌개",
+              "width": "fill_container",
+              "fill": "$color-background-default",
+              "stroke": "$color-border-subtle",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": "$spacing-12",
+              "padding": [
+                "$spacing-12",
+                "$spacing-16"
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "nWLZX",
+                  "type": "ref",
+                  "ref": "E1WhEz",
+                  "name": "Pin",
+                  "fill": "$color-text-muted"
+                },
+                {
+                  "type": "frame",
+                  "id": "Tav4w",
+                  "name": "Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "id": "PHz60",
+                      "type": "ref",
+                      "ref": "w0M5r7",
+                      "name": "Name",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "개봉동 원조부대찌개",
+                      "fill": "$color-text-default"
+                    },
+                    {
+                      "id": "k0OWl",
+                      "type": "ref",
+                      "ref": "g1k4c",
+                      "name": "Address",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "서울 구로구 개봉로 108",
+                      "fill": "$color-text-subtle"
+                    }
+                  ]
+                },
+                {
+                  "id": "m8q2K6",
+                  "type": "ref",
+                  "ref": "zl7k5",
+                  "name": "Chevron",
+                  "fill": "$color-text-muted"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "nLwhq",
+      "x": 1428,
+      "y": -118,
+      "name": "07 Place Search Empty",
+      "clip": true,
+      "width": 360,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "v3KpLY",
+          "type": "ref",
+          "ref": "U5Knu",
+          "name": "Top Navigation",
+          "width": "fill_container",
+          "descendants": {
+            "AbHZi": {
+              "content": "장소 등록"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "NwXRu",
+          "name": "Search Wrap",
+          "width": "fill_container",
+          "fill": "$color-background-default",
+          "stroke": "$color-border-subtle",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "gap": "$spacing-12",
+          "padding": [
+            "$spacing-12",
+            "$spacing-16"
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "Q9YmLm",
+              "type": "ref",
+              "ref": "UTmI9",
+              "name": "Search Input Focused",
+              "width": "fill_container",
+              "descendants": {
+                "gI9IK": {
+                  "enabled": false
+                },
+                "t6x9k": {
+                  "id": "RpEdi",
+                  "type": "ref",
+                  "ref": "oCNNe",
+                  "name": "icon-left",
+                  "fill": "$color-text-secondary"
+                },
+                "IHacq": {
+                  "content": "우리동네 숨은 국밥집",
+                  "fill": "$color-text-default"
+                },
+                "UeMfe": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "id": "OZbmv",
+              "type": "ref",
+              "ref": "Cx2Az",
+              "name": "Cancel",
+              "content": "취소",
+              "fill": "$color-text-secondary"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "qn0iF",
+          "name": "Body",
+          "width": "fill_container",
+          "fill": "$color-background-default",
+          "layout": "vertical",
+          "gap": "$spacing-20",
+          "padding": "$spacing-16",
+          "children": [
+            {
+              "id": "V7Dffr",
+              "type": "ref",
+              "ref": "E2Z89m",
+              "name": "No Results",
+              "width": "fill_container",
+              "descendants": {
+                "v6FDbJ": {
+                  "content": "검색 결과가 없어요"
+                },
+                "fgd69": {
+                  "content": "입력하신 이름의 장소를 찾지 못했어요. 주소 없이 이름만 직접 등록할 수 있어요."
+                },
+                "uQPqs": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "JFYoS",
+              "name": "Direct Input Section",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": "$spacing-8",
+              "children": [
+                {
+                  "id": "Ln6qE",
+                  "type": "ref",
+                  "ref": "oLMad",
+                  "name": "Place Name Field",
+                  "width": "fill_container",
+                  "descendants": {
+                    "M9Rcb": {
+                      "content": "장소 이름 직접 입력"
+                    },
+                    "FMEXn": {
+                      "enabled": false
+                    },
+                    "YcGUb": {
+                      "content": "우리동네 숨은 국밥집",
+                      "fill": "$color-text-default"
+                    },
+                    "AlnoW": {
+                      "content": "주소는 저장되지 않고 이름만 등록돼요.",
+                      "fill": "$color-text-subtle"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "p5h7Qc",
+              "type": "ref",
+              "ref": "oikUd",
+              "name": "Submit Button",
+              "width": "fill_container",
+              "descendants": {
+                "vlnw5": {
+                  "enabled": false
+                },
+                "JfADu": {
+                  "content": "이 이름으로 등록하기"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "EpmLm",
+      "x": 1868,
+      "y": -118,
+      "name": "08 Detail (지도 포함)",
+      "clip": true,
+      "width": 360,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "dHkA4",
+          "type": "ref",
+          "ref": "U5Knu",
+          "name": "Top Navigation",
+          "width": "fill_container",
+          "fill": "$color-background-inverse",
+          "stroke": "$color-background-inverse",
+          "descendants": {
+            "AbHZi": {
+              "content": "맛집 상세",
+              "fill": "$color-text-on-inverse"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "FAohT",
+          "name": "Detail Hero Image",
+          "metadata": {
+            "type": "unsplash",
+            "username": "portuguesegravity",
+            "link": "https://unsplash.com/@portuguesegravity",
+            "author": "Portuguese Gravity"
+          },
+          "clip": true,
+          "width": "fill_container",
+          "height": 230,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "images/generated-1785376309570.png",
+            "mode": "fill"
+          },
+          "layout": "none"
+        },
+        {
+          "type": "frame",
+          "id": "FMVR7",
+          "name": "Detail Body",
+          "width": "fill_container",
+          "fill": "$color-background-default",
+          "layout": "vertical",
+          "gap": "$spacing-24",
+          "padding": [
+            18,
+            "$spacing-16",
+            "$spacing-16",
+            "$spacing-16"
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "Djfbk",
+              "name": "Title Block",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "id": "rvdEr",
+                  "type": "ref",
+                  "ref": "Cduy9",
+                  "name": "Detail Name",
+                  "content": "광명 시골보리밥",
+                  "fill": "$color-text-default"
+                },
+                {
+                  "id": "D0DyWK",
+                  "type": "ref",
+                  "ref": "NDYRT",
+                  "name": "Detail Meta",
+                  "content": "한식 · 보리밥 · 3월 등록",
+                  "fill": "$color-text-muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "eDbzN",
+              "name": "Info Chips",
+              "width": "fill_container",
+              "gap": "$spacing-8",
+              "children": [
+                {
+                  "id": "jXkbz",
+                  "type": "ref",
+                  "ref": "bbVBw",
+                  "name": "주차 넉넉 Chip",
+                  "descendants": {
+                    "oFf9F": {
+                      "id": "C6FWV",
+                      "type": "ref",
+                      "ref": "BchIS",
+                      "name": "icon",
+                      "fill": "$color-text-subtle"
+                    },
+                    "v4xOw": {
+                      "content": "주차 넉넉"
+                    }
+                  }
+                },
+                {
+                  "id": "y36WUQ",
+                  "type": "ref",
+                  "ref": "bbVBw",
+                  "name": "아이 의자 Chip",
+                  "descendants": {
+                    "oFf9F": {
+                      "id": "iNLb0",
+                      "type": "ref",
+                      "ref": "lO8zG",
+                      "name": "icon",
+                      "fill": "$color-text-subtle"
+                    },
+                    "v4xOw": {
+                      "content": "아이 의자"
+                    }
+                  }
+                },
+                {
+                  "id": "k5nSgQ",
+                  "type": "ref",
+                  "ref": "bbVBw",
+                  "name": "차로 24분 Chip",
+                  "descendants": {
+                    "oFf9F": {
+                      "id": "g4TZ1i",
+                      "type": "ref",
+                      "ref": "XBjPx",
+                      "name": "icon",
+                      "fill": "$color-text-subtle"
+                    },
+                    "v4xOw": {
+                      "content": "차로 24분"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "gyeNq",
+              "name": "Review Section",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "id": "zkFH6",
+                  "type": "ref",
+                  "ref": "yXH3o",
+                  "name": "Review Title",
+                  "content": "이용 후기",
+                  "fill": "$color-text-default"
+                },
+                {
+                  "id": "u3WeQ",
+                  "type": "ref",
+                  "ref": "NDYRT",
+                  "name": "Review Body",
+                  "content": "주말 점심에 다녀왔는데 보리밥 정식이 정갈하고 반찬이 계속 손이 갔어요. 좌석이 넓어서 아이랑 가도 부담 없고, 근처 공영주차장도 가까워요. 붐비지 않아서 여유롭게 먹고 왔습니다.",
+                  "fill": "$color-text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YDNXn",
+              "name": "Address Section",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "A3JpvE",
+                  "name": "Address Header",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "vnxpR",
+                      "type": "ref",
+                      "ref": "yXH3o",
+                      "name": "Address Title",
+                      "content": "주소",
+                      "fill": "$color-text-default"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "kLrQc",
+                      "name": "Copy Button",
+                      "gap": 4,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "id": "aAXm1",
+                          "type": "ref",
+                          "ref": "zMOx5",
+                          "name": "Copy Icon",
+                          "fill": "$color-text-muted"
+                        },
+                        {
+                          "id": "u1H2oI",
+                          "type": "ref",
+                          "ref": "Cx2Az",
+                          "name": "Copy Text",
+                          "content": "복사",
+                          "fill": "$color-text-muted"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "eusAD",
+                  "type": "ref",
+                  "ref": "NDYRT",
+                  "name": "Address Text",
+                  "content": "경기 광명시 오리로 854번길 12, 1층",
+                  "fill": "$color-text-secondary"
+                },
+                {
+                  "type": "frame",
+                  "id": "ymGlO",
+                  "name": "Detail Map",
+                  "clip": true,
+                  "width": "fill_container",
+                  "height": 170,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "images/generated-1786072145801.png",
+                    "mode": "fill"
+                  },
+                  "cornerRadius": 14,
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "vKe7F",
+                      "type": "ref",
+                      "ref": "giEU9",
+                      "name": "Center Pin",
+                      "fill": "$color-text-brand"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "JrZxl",
+                      "layoutPosition": "absolute",
+                      "x": 10,
+                      "y": 10,
+                      "name": "Naver Badge",
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 7,
+                      "stroke": "$color-border-default",
+                      "strokeWidth": 1,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#00000022",
+                        "offset": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "blur": 4
+                      },
+                      "gap": 5,
+                      "padding": [
+                        5,
+                        8
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "yyEXZ",
+                          "name": "Naver Logo",
+                          "width": 18,
+                          "height": 18,
+                          "fill": "#03C75A",
+                          "cornerRadius": 4,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "ix8uO",
+                              "name": "N",
+                              "fill": "#FFFFFF",
+                              "content": "N",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "$font-weight-bold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "MH1wu",
+                          "name": "Label",
+                          "fill": "$color-text-default",
+                          "content": "지도",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "$font-weight-semibold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "qXkBO",
+          "name": "Detail Action Bar",
+          "width": "fill_container",
+          "fill": "$color-background-surface",
+          "stroke": "$color-border-subtle",
+          "strokeWidth": {
+            "top": 1
+          },
+          "gap": "$spacing-12",
+          "padding": [
+            12,
+            "$spacing-16",
+            "$spacing-16",
+            "$spacing-16"
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "JOAth",
+              "type": "ref",
+              "ref": "pa9xP",
+              "name": "Save Button",
+              "descendants": {
+                "jTLTo": {
+                  "id": "qxW68",
+                  "type": "ref",
+                  "ref": "o7giza",
+                  "name": "save-icon",
+                  "fill": "$color-text-default"
+                },
+                "j4Qlz": {
+                  "content": "저장"
+                }
+              }
+            },
+            {
+              "id": "WcB0w",
+              "type": "ref",
+              "ref": "oikUd",
+              "name": "Route Button",
+              "width": "fill_container",
+              "descendants": {
+                "vlnw5": {
+                  "id": "wTObp",
+                  "type": "ref",
+                  "ref": "OAucH",
+                  "name": "route-icon",
+                  "fill": "$color-text-on-brand"
+                },
+                "JfADu": {
+                  "content": "길찾기"
                 }
               }
             }
