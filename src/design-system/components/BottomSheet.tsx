@@ -7,9 +7,23 @@ export type BottomSheetProps = {
   title?: string;
   onClose?: () => void;
   children: ReactNode;
+  /**
+   * 내용 영역의 padding. 기본값은 메뉴형 시트에 맞춘 값이라, 자기 여백이 없는
+   * 폼을 담을 때는 `0 16px 8px` 처럼 넉넉하게 넘긴다.
+   */
+  contentPadding?: string;
+  /** 넓은 화면에서 시트가 끝까지 늘어나지 않게 잡아 주는 폭. */
+  maxWidth?: number;
 };
 
-export function BottomSheet({ open, title, onClose, children }: BottomSheetProps) {
+export function BottomSheet({
+  open,
+  title,
+  onClose,
+  children,
+  contentPadding = "0 8px 8px",
+  maxWidth,
+}: BottomSheetProps) {
   if (!open) return null;
 
   return (
@@ -22,6 +36,7 @@ export function BottomSheet({ open, title, onClose, children }: BottomSheetProps
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-end",
+        alignItems: "center",
         background: "#1C1C1CB3",
       }}
     >
@@ -31,6 +46,7 @@ export function BottomSheet({ open, title, onClose, children }: BottomSheetProps
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
+          maxWidth,
           background: "var(--color-background-default)",
           borderRadius: "16px 16px 0 0",
           paddingBottom: 12,
@@ -53,7 +69,7 @@ export function BottomSheet({ open, title, onClose, children }: BottomSheetProps
             </span>
           </div>
         )}
-        <div style={{ padding: "0 8px 8px" }}>{children}</div>
+        <div style={{ padding: contentPadding }}>{children}</div>
       </div>
     </div>
   );

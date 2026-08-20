@@ -2,8 +2,20 @@ import type { ToastType } from "@/design-system/components/Toast";
 import type { SessionUser } from "./useSession";
 import type { Profile, ProfileSaveInput, ProfileSaveResult } from "./useProfile";
 import type { LoadStatus, PlaceSummary } from "./usePlaces";
+import type { Cancellation, Order, Receipt } from "./payments";
 
-export type ScreenKey = "login" | "main" | "detail" | "register" | "edit" | "my";
+export type ScreenKey =
+  | "login"
+  | "main"
+  | "detail"
+  | "register"
+  | "edit"
+  | "my"
+  | "banner"
+  | "payment-complete";
+
+/** 마이 화면의 탭. 결제 완료 화면에서 "결제 내역 보기" 로 바로 열기도 한다. */
+export type MyTabKey = "posts" | "orders" | "cancels";
 
 /** Navigation + shared-state API passed from FoodApp down to each screen. */
 export type AppNav = {
@@ -30,4 +42,19 @@ export type AppNav = {
   loadMorePlaces: () => void;
   loadingMorePlaces: boolean;
   hasMorePlaces: boolean;
+
+  /* ------------------------------------------------- 강연·모임 결제 (배너) -- */
+
+  /** 메인 배너에서 상품 상세로. */
+  openBanner: (productId: string) => void;
+  /** 결제가 끝났다. 내역에 한 줄 얹고 완료 화면으로 보낸다. */
+  completePayment: (receipt: Receipt) => void;
+  /** 결제를 취소한다. 결제 내역에서 빠지고 취소 내역으로 옮겨간다. */
+  cancelOrder: (orderId: string) => void;
+  orders: Order[];
+  cancellations: Cancellation[];
+  /** 마이 화면에서 지금 열려 있는 탭. */
+  myTab: MyTabKey;
+  /** 마이 화면을 특정 탭으로 연다. 이미 마이에 있으면 탭만 바꾼다. */
+  openMyTab: (tab: MyTabKey) => void;
 };

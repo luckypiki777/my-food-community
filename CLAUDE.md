@@ -1,4 +1,5 @@
 @AGENTS.md
+@rules/payment.md
 
 # Design SSOT
 
@@ -17,6 +18,8 @@
 - BFF 계층: `src/app/api/**/route.ts` (Route Handler) 또는 Server Action. 서버 전용 코드에서만 Supabase SDK를 사용한다.
 - Supabase 클라이언트 생성은 `src/lib/supabase/server.ts` 한 곳으로 모으고, 파일 최상단에 `import 'server-only'`을 둔다.
 - Service role key 등 비밀 키는 서버에서만 읽는다. `NEXT_PUBLIC_*` 로 노출하지 않는다.
+- **RLS 를 우회하는 secret 키(`SUPABASE_SECRET_KEY`)를 쓰는 곳은 결제 웹훅 하나뿐이다.**
+  세션이 없는 요청(포트원이 부른다)이라 다른 방법이 없다. 다른 라우트로 넓히지 않는다.
 - BFF는 얇게 유지한다: 입력 검증 → 인가 확인 → Supabase 호출 → UI가 쓰는 형태로 응답 정규화.
 - 에러는 그대로 흘리지 않는다. Supabase 에러를 `{ error: { code, message } }` 형태로 매핑하고 적절한 HTTP 상태코드를 반환한다.
 - 소셜 로그인: OAuth 콜백/세션 쿠키 처리도 서버 라우트에서 수행하고, 클라이언트는 BFF가 내려준 세션 상태만 사용한다.
@@ -31,6 +34,7 @@
 - 클라이언트 팩토리: `src/lib/supabase/server.ts`
   - `createSupabaseServerClient()` — Route Handler / Server Action 용
   - `createSupabaseProxyClient(request)` — `src/proxy.ts` 전용
+  - `createSupabaseAdminClient()` — **RLS 를 우회한다. 결제 웹훅 전용.** 다른 데서 쓰지 않는다
   - `getAuthenticatedIdentity(client?)` — 인가 게이트. 새 BFF 라우트는 여기서 시작한다.
     ID만 필요하면 `getAuthenticatedUserId(client?)`. 이미 만든 클라이언트는 넘겨서 재사용한다.
 - 응답 규약: `src/lib/bff/response.ts` 의 `ok` / `noContent` / `fail` / `unauthorized` /
@@ -45,6 +49,14 @@
 - 맛집 라우트: `/api/places` — `GET`(목록) · `POST`(등록) ·
   `/api/places/[id]` — `GET`(상세) · `PATCH`(수정) · `DELETE`(소프트 삭제).
   공용 로직은 `src/lib/bff/place.ts`. 등록·수정에는 지도 정보가 **필수**다(아래 "맛집" 참고).
+- 상품 라우트: `/api/products` — `GET`(목록) · `/api/products/[id]` — `GET`(상세).
+  공용 로직은 `src/lib/bff/product.ts`. **조회만 있다** — 상품은 운영자가 대시보드로 넣는다
+  (아래 "상품" 참고).
+- 결제 라우트: `/api/payments/config` — `GET`(결제창 키) · `/api/payments/complete` — `POST`
+  (결제 완료 처리 · 멱등) · `/api/payments/webhook` — `POST`(포트원 웹훅 · **로그인 게이트
+  없음**, 서명으로 검증한다). 공용 로직은 `src/lib/bff/payment.ts` 와
+  `src/lib/bff/paymentWebhook.ts`.
+  **규칙의 원본은 `rules/payment.md` 다** — 결제 관련 작업은 거기부터 읽는다.
 - 지도 라우트: `/api/map/config` — `GET`. 지도 SDK 키만 내려준다. Supabase 를 타지 않는
   유일한 라우트다(아래 "장소 선택 · 지도" 참고).
 - 리버스 지오코딩 라우트: `/api/map/reverse-geocode` — `GET ?lat=&lng=`. 좌표의 지번 주소를
@@ -199,21 +211,126 @@
 
 ## 스토리지 (사진)
 
-- 버킷 `profile-image` · `place-image` (둘 다 public). 헬퍼는 `src/lib/supabase/storage.ts`.
+- 버킷 `profile-image` · `place-image` · `product-image` (모두 public). 헬퍼는 `src/lib/supabase/storage.ts`.
 - 경로 규약: `<user_id>/<uuidv4>.<ext>`. 파일명은 `randomUUID()`(v4), 확장자는 파일명이 아니라
   **MIME 에서** 뽑는다. 앞의 uid 폴더가 있어야 storage RLS 로 소유권을 강제할 수 있다.
 - 테이블(`profile.image_path` · `place_image.image_path`)에는 **경로만** 저장한다. 공개 URL 은 BFF 가
   `SUPABASE_STORAGE_URL` 과 조립해 `imageUrl` 로 내려준다. 브라우저는 스토리지 주소를 모른다.
 - 제한은 두 겹이다: BFF 검증(5MB · JPG/PNG/WebP/GIF)과 버킷의
   `file_size_limit` / `allowed_mime_types`. 하나만 바꾸면 안 된다.
+- `product-image` 는 결이 다르다. 앱에서 올리지 않고 운영자가 대시보드로 넣는 자산이라
+  **읽기 전용**이다 — `<user_id>/` 폴더 규약도, 업로드 헬퍼도, 쓰기 정책도 없다.
+  경로가 곧 파일명이고(`001-banner-lg.png`), 앞단 조립 규칙만 다른 둘과 같다.
 - 사진 교체 시 순서: 업로드 → DB 반영 → 그다음에 이전 파일 삭제.
   DB 가 실패하면 방금 올린 파일을 되돌린다. 반대로 하면 DB 실패 때 멀쩡한 사진만 날아간다.
+
+## 상품 (`product`)
+
+- 강연·모임 상품. **조회만 한다** — 등록·수정 화면이 없고 BFF 에도 쓰기 라우트가 없다.
+  운영자가 Supabase 대시보드로 행을 넣고 사진을 올린다.
+- 테이블에 RLS 는 켜져 있는데 **정책이 하나도 없었다**. RLS 는 "정책에 허용된 것만 통과" 라
+  정책 0개 = 전부 차단이다. 그래서 `product is readable by authenticated users`
+  (마이그레이션 `product_read_policies`)를 만들었다.
+- **`status = 'Public'` 인 행만 보인다.** 판정은 RLS 정책이 하고, 쿼리
+  (`selectPublicProducts` / `selectPublicProductDetail`)도 같은 조건을 건다 —
+  `place` 의 `deleted_at` 과 같은 이유로, 쿼리만 읽고도 무엇이 빠지는지 알 수 있어야 한다.
+  둘은 **같은 값**이어야 한다.
+- 목록에 커서가 없다. `product.id` 는 uuid v4 라 순서에 아무 의미가 없어 키셋을 짤 수 없고,
+  목록 자체가 배너 몇 장이라 넘길 페이지가 없다. `?limit=` (기본 20, 최대 50)만 받는다.
+  정렬은 다가오는 행사 순(`event_at` 오름차순)이다. 지난 행사를 날짜로 걸러내지는 않는다 —
+  무엇을 내릴지는 운영자가 `status` 로 정한다.
+- 상세 id 는 uuid 라 **형태부터 검사한다**(`parseProductId`). 그냥 넘기면 PostgREST 가
+  `22P02` 로 돌려주는데, 이 코드는 `fromSupabaseError` 의 표에 없어서 400 이어야 할 요청이
+  500 으로 떨어진다.
+- `price` 는 `numeric` 이다. 드라이버에 따라 문자열로 실려 오므로 `toProductBase` 가
+  `Number()` 로 못박는다. 문자열이면 화면의 `formatWon` 이 자릿점 없이 그대로 찍는다.
+- **사진은 컬럼 넷이 두 벌이다**: `image_path_main_{lg,md}`(배너) ·
+  `image_path_detail_{lg,md}`(상세 본문). 각 벌은 같은 사진의 **다른 크롭**이다
+  (lg 2048×768 · md 1829×860). 자세한 건 아래 "반응형" 의 lg/md 규칙.
+- 주소는 다른 버킷과 같은 규약이다 — 앞단은 `SUPABASE_STORAGE_URL`, 뒷단은 위 네 컬럼.
+  테이블에는 경로만 있고 조립은 BFF(`productImageUrl`)가 한다.
+- `product` 에 없는 화면 문구는 `src/components/food/payments.ts` 의 상수로 남아 있다:
+  `PRODUCT_CATEGORY`(분류) · `DESCRIPTION_TITLE`(본문 제목) · `REFUND_POLICY`(환불 규정) ·
+  `MAX_PER_ORDER`(1회 신청 상한). 컬럼이 생기면 여기를 지운다.
+- **"남은 자리" 는 화면에서 뺐다.** 팔린 수를 셀 데가 없다 — `payment` 에 인원 컬럼이 없어서
+  결제 건수로도 정원을 깎을 수 없다. 없는 숫자를 지어내는 대신 `capacity`(정원)만 보여준다.
+  `payment` 에 인원이 생기면 그때 "정원 N명 중 M자리" 로 되돌린다.
+- 화면 쪽 데이터 훅은 `src/components/food/useProducts.ts` 다
+  (`useProductList` / `useProductDetail`). `usePlaceList` 와 달리 로그인 여부를 받지 않는다 —
+  부르는 화면(메인 배너 · 상품 상세)이 로그인한 뒤에만 그려지기 때문이다.
+- 행사 시각은 **한국 시간으로 고정**해 보여준다(`formatEventAt` / `formatEventDate`).
+  구로에서 열리는 모임이라 보는 사람의 시간대를 따라가면 해외에서 열어 본 참가자에게
+  엉뚱한 시각이 뜬다. 정각이면 분을 떼고 "오후 12시" 로 쓴다.
+
+## 강연·모임 결제 (배너)
+
+> **결제 규칙의 원본은 `rules/payment.md` 다.** 결제·웹훅·취소·환불 중 무엇을 건드리든
+> 그 문서를 먼저 읽는다. 아래는 화면 쪽 요약일 뿐이고, 어긋나면 그쪽이 맞다.
+> 포트원 문서·API 스펙은 포트원 MCP 서버(`portone-mcp-server`)로 조회한다.
+
+- **결제는 포트원 V2 로 실제 배선돼 있다.** 카드 인증결제 한 갈래다.
+  상품은 DB 에서 오고(위 "상품" 참고), 결제 건은 `payment` / `payment_snapshot` 에 남는다.
+  아직 화면 상태로만 흐르는 건 **주문 내역 조회와 결제 취소** 둘뿐이다
+  (`FoodApp` 의 `orders` / `cancellations`). 붙일 때의 규칙은 `rules/payment.md` 9절에 있다.
+- **결제 완료 웹훅이 붙어 있다**(`POST /api/payments/webhook`). 결제창이 닫히다 만 건
+  (브라우저 종료·네트워크 끊김)을 확정하는 안전망이라, 브라우저 경로와 **서로의 안전망**
+  으로 먼저 도착한 쪽이 기록한다. 취소 웹훅은 아직 로그만 남긴다.
+- 흐름은 한 줄이다: 메인 배너(`PromoBanner`) → 상품 상세(`BannerDetailScreen`) →
+  결제 바텀시트 → **포트원 결제창** → `POST /api/payments/complete` →
+  결제 완료(`PaymentCompleteScreen`) → 마이 · 결제 내역.
+- **결과가 돌아오는 길이 둘이다.** PC 는 `requestPayment()` 반환값으로, 모바일은
+  `redirectUrl`(`/payment/complete`)로 온다. `forceRedirect` 를 켜지 않았기 때문이고,
+  그래야 PC 에서 쓰던 화면을 잃지 않는다. 리다이렉트로 온 결과는 `/payment/complete` 가
+  `?payment_id=` 로 바꿔 앱에 넘기고, 그다음은 PC 와 **같은 한 갈래**로 흐른다.
+- **결제 성공 여부는 브라우저가 정하지 않는다.** 결제창이 뭐라 하든 서버가 포트원 API 에
+  다시 물어 확정한다(`/api/payments/complete`). 금액의 기준은 언제나 `product.price × 인원`
+  이다. 완료 처리는 멱등하다 — 새로고침해도 같은 영수증이 나온다.
+- 결제 시트는 상세 화면 안에 있다(라우팅이 아니라 `BottomSheet`). 열려 있을 때만 마운트해서
+  닫으면 고르던 인원이 처음 값으로 돌아간다.
+- 인원 상한은 `min(MAX_PER_ORDER, capacity)` 다. 상한에서는 `Stepper` 의 + 가 비활성이 되고,
+  왜 못 늘리는지는 바로 아래 "최대 N명까지…" 문구가 말해 준다. 둘은 같이 움직인다.
+  `MAX_PER_ORDER` 는 화면(`payments.ts`)과 BFF(`lib/bff/payment.ts`)에 같은 값으로 있다.
+- 주문 번호는 포트원 `paymentId` 이자 `payment.transction_key` 다 — **uuid v4**.
+  결제 버튼을 누른 순간 만든다. 렌더 중에 만들면 서버와 클라이언트가 다른 값을 그려
+  hydration 이 깨진다.
+- 결제창 키(`PORTONE_STORE_ID` / `PORTONE_CHANNEL_KEY`)는 `NEXT_PUBLIC_` 없이
+  `/api/payments/config` 가 내려준다(지도 키와 같은 판단). `PORTONE_API_SECRET` 은
+  **브라우저로 나가지 않는다.** 키가 없으면 결제 버튼만 "결제 준비 중" 으로 잠기고
+  나머지 앱은 그대로 돈다.
+- 웹훅이 쓰는 키는 따로다: `PORTONE_WEBHOOK_SECRET`(서명 검증) · `SUPABASE_SECRET_KEY`
+  (RLS 우회 기록). 둘 다 브라우저로 나가지 않고, 없으면 웹훅만 503 으로 받지 않는다 —
+  결제 자체는 그대로 된다.
+- `payment` 는 **insert-only 원장**이다. 결제·취소를 `type` 으로 가르고 `transction_key`
+  (= 포트원 `paymentId`)로 묶는다. 금액은 **결제 +, 취소 −** 라 그룹의 `sum(amount)` 이 곧
+  남은 금액이다. 중복 결제는 유니크 `(transction_key, type)` 가 막는다.
+- 결제가 끝나면 결제 내역 맨 위에 그 건이 얹힌다. 그래야 완료 화면의 "결제 내역 보기" 가
+  빈 목록으로 떨어지지 않는다.
+- 결제 취소는 결제 내역에서 빼고 취소 내역으로 옮긴다(전액 환불로만 다룬다). 옮길 건은
+  `setState` updater **밖에서** 찾는다 — updater 안에서 다른 state 를 건드리면 StrictMode 가
+  두 번 부를 때 취소 내역이 두 줄이 된다.
+- 취소 기한이 지난 건(`cancellable: false`)은 버튼 대신 이유를 남긴다. 눌리는데 아무 일도
+  안 일어나는 버튼보다 낫다.
+- 마이 화면의 탭 상태(`myTab`)는 `FoodApp` 이 들고 있다. 결제 완료 화면이 "결제 내역" 탭을
+  바로 열어야 해서(`openMyTab`), 마이 화면 안에만 두면 밖에서 지정할 수가 없다.
+- 로그아웃하면 결제·취소 내역도 초기값으로 되돌린다. 화면 상태라 안 지우면 다음 사람이
+  남의 내역을 본다.
+- 배너·상세 사진은 이제 `product-image` 버킷에서 온다. `public/images/banner-tour*.png`
+  (디자인의 생성 이미지)는 더 이상 아무도 참조하지 않는다.
 
 # 반응형 (핸드오프)
 
 - 셸 프리미티브 재사용: `src/components/food/shell.tsx`
 - 리스트형(메인·마이): 컨테이너 max-width `1280`, 카드 그리드 `repeat(auto-fill, minmax(320px, 1fr))`, gap `12`.
-- 읽기·폼형(상세·등록·장소 검색·장소 선택): max-width `760`. 로그인: max-width `480`.
+  마이의 세 탭(내가 쓴 글·결제 내역·취소 내역)은 모두 같은 카드 그리드를 쓴다.
+- 읽기·폼형(상세·등록·장소 검색·장소 선택·배너 상세·결제 완료): max-width `760`.
+  로그인: max-width `480`. 결제 바텀시트도 `maxWidth={760}` 으로 같이 잡는다.
 - 컨테이너 중앙 정렬, 좌우 패딩 `clamp(16px, 4vw, 32px)`, 초과분은 좌우 여백.
 - sticky 톱바·fixed 하단바: 풀블리드 배경 + 내부 콘텐츠는 컨테이너 폭에 정렬.
 - FAB: 컨테이너 우측 끝에 정렬.
+- 상품 사진의 lg/md 는 `ProductImage` 한 곳에서 고른다. 경계는 `DESKTOP_MIN_WIDTH = 1280`
+  으로 `LIST_MAX` 와 같은 값이다 — 뷰포트가 우리가 그리는 가장 넓은 본문만큼 넓어졌을 때가
+  "데스크톱" 이다. 흔한 1024 가 아닌 이유는 태블릿이 md 를 받아야 하기 때문이다
+  (아이패드 프로 세로가 정확히 1024라, 1024로 자르면 태블릿이 데스크톱 크롭을 받는다).
+- `srcset` 이 아니라 `<picture>` + 미디어 쿼리인 이유는 두 파일이 **비율이 다른 크롭**이라서다.
+  `srcset` 은 "같은 그림의 다른 해상도" 를 전제로 브라우저가 알아서 고르는 장치라, 화면비에
+  따라 그림 자체를 바꾸려면 `<picture>` 로 지정해야 한다. 고른 쪽 한 장만 내려받는다.

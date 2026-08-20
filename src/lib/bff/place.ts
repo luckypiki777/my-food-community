@@ -1,6 +1,12 @@
 import "server-only";
 
-import { badRequest, fail, fromSupabaseError } from "@/lib/bff/response";
+import {
+  badRequest,
+  fail,
+  fromSupabaseError,
+  invalid,
+  type Parsed,
+} from "@/lib/bff/response";
 import type { SupabaseServerClient } from "@/lib/supabase/server";
 import {
   MAX_IMAGE_BYTES,
@@ -110,16 +116,6 @@ export type PlaceSummary = PlaceBase & {
 export type PlaceDetail = PlaceBase & {
   images: PlaceImage[];
 };
-
-/**
- * 검증 결과. 실패하면 그대로 반환할 수 있는 Response 를 들고 있다.
- * 라우트에서는 `if (!parsed.ok) return parsed.response;` 한 줄로 끝난다.
- */
-export type Parsed<T> = { ok: true; value: T } | { ok: false; response: Response };
-
-function invalid(response: Response): Parsed<never> {
-  return { ok: false, response };
-}
 
 export function notFoundPlace(): Response {
   return fail(404, "not_found", "맛집을 찾을 수 없습니다.");

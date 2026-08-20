@@ -10,6 +10,14 @@ export const PROFILE_IMAGE_BUCKET = "profile-image";
 /** 맛집 사진 버킷. 정책과 제한은 profile-image 와 같다. */
 export const PLACE_IMAGE_BUCKET = "place-image";
 
+/**
+ * 상품(강연·모임) 사진 버킷. 읽기 전용으로만 쓴다.
+ *
+ * 위 두 버킷과 달리 앱에서 올리는 사진이 아니라 운영자가 대시보드로 넣어 두는 자산이라
+ * `<user_id>/` 폴더 규약도, 업로드 헬퍼도 없다. 경로가 곧 파일명이다.
+ */
+export const PRODUCT_IMAGE_BUCKET = "product-image";
+
 /** 두 버킷의 file_size_limit 과 같은 값. 여기서 먼저 걸러 헛된 업로드를 줄인다. */
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -63,4 +71,9 @@ export function profileImageUrl(path: string | null): string | null {
 /** 맛집 사진은 항상 최소 1장이라 경로가 비는 경우가 없다. */
 export function placeImageUrl(path: string): string {
   return publicImageUrl(PLACE_IMAGE_BUCKET, path);
+}
+
+/** 상품 사진. 네 컬럼(main/detail × lg/md)이 모두 NOT NULL 이라 경로가 비지 않는다. */
+export function productImageUrl(path: string): string {
+  return publicImageUrl(PRODUCT_IMAGE_BUCKET, path);
 }

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -130,4 +131,32 @@ export async function getAuthenticatedUserId(
   client?: SupabaseServerClient,
 ): Promise<string | null> {
   return (await getAuthenticatedIdentity(client))?.id ?? null;
+}
+
+/**
+ * **RLS 를 통째로 우회하는 클라이언트.** 포트원 웹훅 전용이다.
+ *
+ * 웹훅은 포트원 서버가 부른다 — 로그인한 사람도, 세션 쿠키도 없다. 그런데 `payment` 의
+ * RLS 는 `auth.uid() = user_id` 라, 세션 없는 요청으로는 결제 행을 넣을 방법이 아예 없다.
+ * 그래서 이 한 경로에만 secret 키를 쓴다.
+ *
+ * **다른 곳에서 부르지 않는다.** 이 키는 모든 정책을 건너뛰므로, 여기서 도는 코드는
+ * "누가 요청했는지" 를 스스로 증명해야 한다. 웹훅의 경우 그 증명은 서명 검증
+ * (`paymentWebhook.ts`)과 포트원 결제 조회 두 겹이다.
+ *
+ * 세션 갱신이 필요 없으므로 쿠키·토큰 자동 갱신을 모두 끈다.
+ */
+export function createSupabaseAdminClient() {
+  return createClient<Database>(
+    requireEnv("SUPABASE_URL"),
+    requireEnv("SUPABASE_SECRET_KEY"),
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+}
+
+export type SupabaseAdminClient = ReturnType<typeof createSupabaseAdminClient>;
+
+/** secret 키가 설정돼 있는가. 없으면 웹훅은 결제를 기록할 수 없다. */
+export function hasSupabaseAdminKey(): boolean {
+  return Boolean(process.env.SUPABASE_SECRET_KEY);
 }

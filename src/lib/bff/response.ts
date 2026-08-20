@@ -6,6 +6,19 @@ import { AuthError, type PostgrestError } from "@supabase/supabase-js";
 export type BffErrorBody = { error: { code: string; message: string } };
 
 /**
+ * 검증 결과. 실패하면 그대로 반환할 수 있는 Response 를 들고 있다.
+ * 라우트에서는 `if (!parsed.ok) return parsed.response;` 한 줄로 끝난다.
+ *
+ * 맛집·상품 등 여러 BFF 모듈이 같이 쓰므로 응답 규약과 같은 자리에 둔다.
+ */
+export type Parsed<T> = { ok: true; value: T } | { ok: false; response: Response };
+
+/** 실패한 검증 결과를 만든다. `Parsed<never>` 라 어떤 `Parsed<T>` 자리에도 들어간다. */
+export function invalid(response: Response): Parsed<never> {
+  return { ok: false, response };
+}
+
+/**
  * BFF 응답은 전부 사용자별 데이터다. CDN·프록시가 한 사용자의 응답을
  * 다른 사용자에게 주는 일이 없도록 캐시를 막는다.
  */

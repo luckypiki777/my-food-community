@@ -20,6 +20,7 @@ import {
   LIST_MAX,
 } from "../shell";
 import { RestaurantCard } from "../RestaurantCard";
+import { PromoBanner } from "../PromoBanner";
 import { CATEGORIES, FEATURED } from "../data";
 import type { AppNav } from "../types";
 import { MAIN_BOTTOM_NAV } from "./navConfig";
@@ -49,6 +50,9 @@ export function MainScreen({ nav }: { nav: AppNav }) {
 
       <Container maxWidth={LIST_MAX} style={{ paddingTop: 12, paddingBottom: 24 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          {/* 강연·모임 결제 상품으로 들어가는 입구. 맛집 검색보다 위에 둔다. */}
+          <PromoBanner onSelect={nav.openBanner} />
+
           <TextField
             leftIcon="search"
             placeholder="맛집 이름·설명 검색"

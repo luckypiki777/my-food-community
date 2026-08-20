@@ -1,30 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
 import { TopNavigation } from "@/design-system/components/TopNavigation";
 import { Button } from "@/design-system/components/Button";
 import { Avatar } from "@/design-system/components/Avatar";
 import { BottomNavigation } from "@/design-system/components/BottomNavigation";
-import { Badge } from "@/design-system/components/Badge";
+import { TabNavigation } from "@/design-system/components/TabNavigation";
 import { Empty } from "@/design-system/components/Empty";
 import { Spinner } from "@/design-system/components/Spinner";
-import {
-  Screen,
-  StickyHeader,
-  FixedBottom,
-  Container,
-  CardGrid,
-  SectionHeader,
-  LIST_MAX,
-} from "../shell";
+import { Screen, StickyHeader, FixedBottom, Container, CardGrid, LIST_MAX } from "../shell";
 import { Modal } from "@/design-system/components/Modal";
 import { RestaurantCard } from "../RestaurantCard";
+import { OrderCard, CancellationCard } from "../OrderCard";
 import { ProfileEditModal } from "../ProfileEditModal";
+import { formatWon, type Order } from "../payments";
 import { deletePlace, usePlaceList, type PlaceSummary } from "../usePlaces";
-import type { AppNav } from "../types";
+import type { AppNav, MyTabKey } from "../types";
 import { MAIN_BOTTOM_NAV } from "./navConfig";
 import { handleBottomNav } from "./MainScreen";
+
+const TABS: { key: MyTabKey; label: string }[] = [
+  { key: "posts", label: "내가 쓴 글" },
+  { key: "orders", label: "결제 내역" },
+  { key: "cancels", label: "취소 내역" },
+];
 
 export function MyScreen({ nav }: { nav: AppNav }) {
   // 메인의 목록과 따로 부른다. 서버가 작성자로 걸러줘야 뒷 페이지의 내 글이 빠지지 않는다.
@@ -33,6 +33,8 @@ export function MyScreen({ nav }: { nav: AppNav }) {
   // 삭제는 되돌리는 UI가 없으니 한 번 물어본다. 서버에서는 소프트 삭제라 복구는 가능하다.
   const [pendingDelete, setPendingDelete] = useState<PlaceSummary | null>(null);
   const [deleting, setDeleting] = useState(false);
+  // 결제 취소도 되돌릴 수 없다. 환불 금액까지 보여주고 확인을 받는다.
+  const [pendingCancel, setPendingCancel] = useState<Order | null>(null);
 
   const confirmDelete = async () => {
     if (!pendingDelete || deleting) return;
@@ -51,6 +53,15 @@ export function MyScreen({ nav }: { nav: AppNav }) {
     nav.reloadPlaces();
   };
 
+  const confirmCancel = () => {
+    if (!pendingCancel) return;
+    nav.cancelOrder(pendingCancel.id);
+    setPendingCancel(null);
+    // 취소한 건은 이 탭에서 사라지므로, 어디로 갔는지 알려주고 그 탭을 연다.
+    nav.openMyTab("cancels");
+    nav.toast("결제를 취소했어요. 환불이 시작됩니다", "success");
+  };
+
   const stats = [
     { value: mine.places.length, label: "작성한 글" },
     { value: nav.bookmarks.size, label: "저장한 곳" },
@@ -66,14 +77,23 @@ export function MyScreen({ nav }: { nav: AppNav }) {
     nav.profile?.nickname ?? nav.user?.name ?? nav.user?.email?.split("@")[0] ?? "이웃";
   const avatarUrl = nav.profile?.imageUrl ?? nav.user?.avatarUrl ?? null;
 
+  /** 프로필 설정을 연다. 아직 못 불러왔으면 무엇을 고칠지 알 수 없어 막는다. */
+  const openProfileSettings = () => {
+    if (!nav.profile) {
+      nav.toast("프로필을 불러오는 중이에요", "info");
+      return;
+    }
+    setEditing(true);
+  };
+
   return (
     <Screen hasBottomBar>
       <StickyHeader maxWidth={LIST_MAX}>
         <TopNavigation
           title="마이"
           rightIcon="settings"
-          rightLabel="설정"
-          onRightClick={() => nav.toast("설정은 준비 중이에요", "info")}
+          rightLabel="프로필 설정"
+          onRightClick={openProfileSettings}
         />
       </StickyHeader>
 
@@ -108,7 +128,7 @@ export function MyScreen({ nav }: { nav: AppNav }) {
             style={{ width: "100%" }}
             // 프로필을 아직 못 불러왔으면 무엇을 수정할지 알 수 없다.
             disabled={!nav.profile}
-            onClick={() => setEditing(true)}
+            onClick={openProfileSettings}
           >
             프로필 수정
           </Button>
@@ -124,24 +144,24 @@ export function MyScreen({ nav }: { nav: AppNav }) {
             }}
           >
             {stats.map((s, i) => (
-              <div key={s.label} style={{ display: "flex", alignItems: "center" }}>
+              <Fragment key={s.label}>
                 {i > 0 && (
                   <div
                     style={{
                       width: 1,
                       height: 32,
+                      flexShrink: 0,
                       background: "var(--color-border-default)",
-                      marginRight: "clamp(16px, 6vw, 48px)",
                     }}
                   />
                 )}
                 <div
                   style={{
+                    flex: 1,
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
                     gap: 2,
-                    marginRight: i < stats.length - 1 ? "clamp(16px, 6vw, 48px)" : 0,
                   }}
                 >
                   <span className="text-heading-md" style={{ color: "var(--color-text-brand)" }}>
@@ -151,58 +171,22 @@ export function MyScreen({ nav }: { nav: AppNav }) {
                     {s.label}
                   </span>
                 </div>
-              </div>
+              </Fragment>
             ))}
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <SectionHeader
-              title="내가 쓴 글"
-              trailing={<Badge type="neutral">{mine.places.length}</Badge>}
-            />
+          <TabNavigation
+            tabs={TABS}
+            activeKey={nav.myTab}
+            onChange={(key) => nav.openMyTab(key as MyTabKey)}
+            fullWidth
+          />
 
-            {mine.status === "loading" ? (
-              <div style={{ display: "flex", justifyContent: "center", padding: "32px 0" }}>
-                <Spinner size={28} color="var(--color-background-brand)" />
-              </div>
-            ) : mine.status === "error" ? (
-              <Empty
-                icon="error"
-                title="글을 불러오지 못했어요"
-                description="잠시 후 다시 시도해 주세요"
-              />
-            ) : mine.places.length === 0 ? (
-              <Empty
-                icon="image"
-                title="아직 쓴 글이 없어요"
-                description="첫 맛집을 등록해 보세요"
-              />
-            ) : (
-              <>
-                <CardGrid>
-                  {mine.places.map((place) => (
-                    <RestaurantCard
-                      key={place.id}
-                      place={place}
-                      onClick={nav.openDetail}
-                      onDelete={() => setPendingDelete(place)}
-                    />
-                  ))}
-                </CardGrid>
-                {mine.hasMore && (
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    style={{ width: "100%" }}
-                    disabled={mine.loadingMore}
-                    onClick={() => void mine.loadMore()}
-                  >
-                    {mine.loadingMore ? "불러오는 중…" : "더 보기"}
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
+          {nav.myTab === "posts" && (
+            <MyPosts mine={mine} nav={nav} onDelete={setPendingDelete} />
+          )}
+          {nav.myTab === "orders" && <MyOrders nav={nav} onCancel={setPendingCancel} />}
+          {nav.myTab === "cancels" && <MyCancellations nav={nav} />}
 
           <button
             type="button"
@@ -252,6 +236,23 @@ export function MyScreen({ nav }: { nav: AppNav }) {
         }}
       />
 
+      <Modal
+        open={pendingCancel !== null}
+        title="결제를 취소할까요?"
+        description={
+          pendingCancel
+            ? `"${pendingCancel.productName}" 신청이 취소되고 ${formatWon(pendingCancel.amount)}이 환불돼요.`
+            : undefined
+        }
+        onClose={() => setPendingCancel(null)}
+        primaryAction={{
+          label: "결제 취소",
+          variant: "destructive",
+          onClick: confirmCancel,
+        }}
+        secondaryAction={{ label: "닫기", onClick: () => setPendingCancel(null) }}
+      />
+
       {/* 열려 있을 때만 마운트한다. 닫으면 고르다 만 사진까지 통째로 사라진다. */}
       {editing && nav.profile && (
         <ProfileEditModal
@@ -267,5 +268,105 @@ export function MyScreen({ nav }: { nav: AppNav }) {
         />
       )}
     </Screen>
+  );
+}
+
+function MyPosts({
+  mine,
+  nav,
+  onDelete,
+}: {
+  mine: ReturnType<typeof usePlaceList>;
+  nav: AppNav;
+  onDelete: (place: PlaceSummary) => void;
+}) {
+  if (mine.status === "loading") {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", padding: "32px 0" }}>
+        <Spinner size={28} color="var(--color-background-brand)" />
+      </div>
+    );
+  }
+
+  if (mine.status === "error") {
+    return (
+      <Empty
+        icon="error"
+        title="글을 불러오지 못했어요"
+        description="잠시 후 다시 시도해 주세요"
+      />
+    );
+  }
+
+  if (mine.places.length === 0) {
+    return (
+      <Empty icon="image" title="아직 쓴 글이 없어요" description="첫 맛집을 등록해 보세요" />
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <CardGrid>
+        {mine.places.map((place) => (
+          <RestaurantCard
+            key={place.id}
+            place={place}
+            onClick={nav.openDetail}
+            onDelete={() => onDelete(place)}
+          />
+        ))}
+      </CardGrid>
+      {mine.hasMore && (
+        <Button
+          variant="secondary"
+          size="md"
+          style={{ width: "100%" }}
+          disabled={mine.loadingMore}
+          onClick={() => void mine.loadMore()}
+        >
+          {mine.loadingMore ? "불러오는 중…" : "더 보기"}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function MyOrders({ nav, onCancel }: { nav: AppNav; onCancel: (order: Order) => void }) {
+  if (nav.orders.length === 0) {
+    return (
+      <Empty
+        icon="calendar"
+        title="결제한 모임이 없어요"
+        description="메인 배너에서 강연·모임을 둘러보세요"
+      />
+    );
+  }
+
+  return (
+    <CardGrid>
+      {nav.orders.map((order) => (
+        <OrderCard key={order.id} order={order} onCancel={onCancel} />
+      ))}
+    </CardGrid>
+  );
+}
+
+function MyCancellations({ nav }: { nav: AppNav }) {
+  if (nav.cancellations.length === 0) {
+    return (
+      <Empty
+        icon="info"
+        title="취소한 내역이 없어요"
+        description="결제 내역에서 취소하면 여기에 쌓여요"
+      />
+    );
+  }
+
+  return (
+    <CardGrid>
+      {nav.cancellations.map((cancellation) => (
+        <CancellationCard key={cancellation.id} cancellation={cancellation} />
+      ))}
+    </CardGrid>
   );
 }
