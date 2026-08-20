@@ -5,22 +5,29 @@ import * as PortOne from "@portone/server-sdk";
 /**
  * 포트원 웹훅의 **문 앞**. 서명 검증과 이벤트 분류만 한다.
  *
- * 규칙의 원본은 `rules/payment.md` 다. 결제 판정은 여기 없다 — 검증된 웹훅에서 결제 건
- * ID 하나만 뽑아 `completePayment()`(`payment.ts`)에 넘긴다. 판정 표가 두 벌이 되면
- * 브라우저로 들어온 결제와 웹훅으로 들어온 결제가 서로 다른 기준을 타게 된다.
+ * 규칙의 원본은 `rules/payment.md` 다. 결제·취소 판정은 여기 없다 — 검증된 웹훅에서
+ * 결제 건 ID 하나만 뽑아 `completePayment()` 또는 `recordCancellation()` 에 넘긴다.
+ * 판정 표가 두 벌이 되면 브라우저로 들어온 건과 웹훅으로 들어온 건이 서로 다른 기준을
+ * 타게 된다.
  *
  * 웹훅 버전은 `2024-04-25`(Standard Webhooks) 기준이다.
  * 문서: https://developers.portone.io/opi/ko/integration/webhook/readme-v2
  */
 
-/** 우리가 실제로 처리하는 이벤트. 결제 승인 하나뿐이다. */
+/** 결제 승인. `completePayment()` 로 간다. */
 const PAID = "Transaction.Paid";
 
 /**
- * 취소 계열 이벤트. **아직 처리하지 않는다** — `rules/payment.md` 8절.
+ * 취소 계열 이벤트. 셋 다 `recordCancellation()` 로 간다 — `rules/payment.md` 9-1.
  *
- * 목록으로 들고 있는 이유는 "모르는 이벤트" 와 갈라서 로그에 남기기 위해서다.
- * 콘솔에서 환불한 건이 우리 원장에 반영되지 않았다는 사실이 로그에 보여야 한다.
+ * - `Transaction.Cancelled` — 전액 취소.
+ * - `Transaction.PartialCancelled` — 부분 취소. **아직 원장에 여러 줄로 쌓지 못한다**
+ *   (유니크 `(transction_key, type)`). 첫 건만 기록되고 그다음은 로그로 남는다.
+ * - `Transaction.CancelPending` — 비동기 취소 요청. 이 시점에는 취소 금액이 아직
+ *   잡히지 않아 기록할 게 없다. 확정되면 `Transaction.Cancelled` 가 한 번 더 온다.
+ *
+ * 셋을 한 목록으로 두는 이유는 "모르는 이벤트" 와 갈라야 하기 때문이다. 포트원은
+ * 예고 없이 새 `type` 을 추가하므로 모르는 것은 조용히 무시해야 한다.
  */
 const CANCEL_EVENTS = [
   "Transaction.Cancelled",
@@ -37,7 +44,14 @@ const CANCEL_EVENTS = [
  */
 export type WebhookEvent =
   | { kind: "paid"; paymentId: string; storeId: string }
-  | { kind: "cancel"; paymentId: string; storeId: string; type: string }
+  | {
+      kind: "cancel";
+      paymentId: string;
+      storeId: string;
+      type: string;
+      /** 포트원이 채번한 취소 건 번호. 지금은 로그에만 쓴다(부분 취소를 열면 컬럼이 된다). */
+      cancellationId: string | null;
+    }
   | { kind: "ignore"; type: string };
 
 export type WebhookVerdict =
@@ -84,7 +98,15 @@ function classify(webhook: PortOne.Webhook.Webhook): WebhookEvent {
   const { paymentId, storeId } = webhook.data;
   if (type === PAID) return { kind: "paid", paymentId, storeId };
   if ((CANCEL_EVENTS as readonly string[]).includes(type)) {
-    return { kind: "cancel", paymentId, storeId, type };
+    // cancellationId 는 취소 계열에만 붙는다. 타입 좁히기가 안 되는 자리라 직접 꺼낸다.
+    const raw = (webhook.data as { cancellationId?: unknown }).cancellationId;
+    return {
+      kind: "cancel",
+      paymentId,
+      storeId,
+      type,
+      cancellationId: typeof raw === "string" ? raw : null,
+    };
   }
   return { kind: "ignore", type };
 }

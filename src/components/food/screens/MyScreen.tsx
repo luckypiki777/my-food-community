@@ -15,7 +15,7 @@ import { RestaurantCard } from "../RestaurantCard";
 import { OrderCard, CancellationCard } from "../OrderCard";
 import { ProfileEditModal } from "../ProfileEditModal";
 import { formatWon, type Order } from "../payments";
-import { deletePlace, usePlaceList, type PlaceSummary } from "../usePlaces";
+import { deletePlace, usePlaceList, type LoadStatus, type PlaceSummary } from "../usePlaces";
 import type { AppNav, MyTabKey } from "../types";
 import { MAIN_BOTTOM_NAV } from "./navConfig";
 import { handleBottomNav } from "./MainScreen";
@@ -35,6 +35,8 @@ export function MyScreen({ nav }: { nav: AppNav }) {
   const [deleting, setDeleting] = useState(false);
   // 결제 취소도 되돌릴 수 없다. 환불 금액까지 보여주고 확인을 받는다.
   const [pendingCancel, setPendingCancel] = useState<Order | null>(null);
+  // 포트원 취소는 서버 왕복이라 시간이 걸린다. 그동안 모달을 닫지도 다시 누르지도 못한다.
+  const [cancelling, setCancelling] = useState(false);
 
   const confirmDelete = async () => {
     if (!pendingDelete || deleting) return;
@@ -53,9 +55,17 @@ export function MyScreen({ nav }: { nav: AppNav }) {
     nav.reloadPlaces();
   };
 
-  const confirmCancel = () => {
-    if (!pendingCancel) return;
-    nav.cancelOrder(pendingCancel.id);
+  const confirmCancel = async () => {
+    if (!pendingCancel || cancelling) return;
+    setCancelling(true);
+    const result = await nav.cancelOrder(pendingCancel.id);
+    setCancelling(false);
+
+    if (!result.ok) {
+      // 실패 이유는 서버가 준 문구를 그대로 보여준다(취소 기한이 지났다 · 이미 취소됐다 등).
+      nav.toast(result.message, "error");
+      return;
+    }
     setPendingCancel(null);
     // 취소한 건은 이 탭에서 사라지므로, 어디로 갔는지 알려주고 그 탭을 연다.
     nav.openMyTab("cancels");
@@ -244,13 +254,17 @@ export function MyScreen({ nav }: { nav: AppNav }) {
             ? `"${pendingCancel.productName}" 신청이 취소되고 ${formatWon(pendingCancel.amount)}이 환불돼요.`
             : undefined
         }
-        onClose={() => setPendingCancel(null)}
+        onClose={() => (cancelling ? undefined : setPendingCancel(null))}
         primaryAction={{
-          label: "결제 취소",
+          label: cancelling ? "취소 중…" : "결제 취소",
           variant: "destructive",
-          onClick: confirmCancel,
+          loading: cancelling,
+          onClick: () => void confirmCancel(),
         }}
-        secondaryAction={{ label: "닫기", onClick: () => setPendingCancel(null) }}
+        secondaryAction={{
+          label: "닫기",
+          onClick: () => (cancelling ? undefined : setPendingCancel(null)),
+        }}
       />
 
       {/* 열려 있을 때만 마운트한다. 닫으면 고르다 만 사진까지 통째로 사라진다. */}
@@ -331,7 +345,46 @@ function MyPosts({
   );
 }
 
+/** 목록을 아직 못 읽었을 때. 결제 내역과 취소 내역이 같은 요청을 기다린다. */
+function PaymentsPlaceholder({ status }: { status: LoadStatus }) {
+  if (status === "loading") {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", padding: "32px 0" }}>
+        <Spinner size={28} color="var(--color-background-brand)" />
+      </div>
+    );
+  }
+  return (
+    <Empty
+      icon="error"
+      title="결제 내역을 불러오지 못했어요"
+      description="잠시 후 다시 시도해 주세요"
+    />
+  );
+}
+
+/**
+ * 상한을 넘긴 결제가 더 있을 때의 안내.
+ *
+ * 조용히 잘라 놓으면 "예전 결제가 사라졌다" 로 읽힌다. 넘길 수단이 아직 없으니
+ * 잘렸다는 사실만이라도 말해 준다(`rules/payment.md` 9-4).
+ */
+function TruncatedNote() {
+  return (
+    <span
+      className="text-label-md"
+      style={{ color: "var(--color-text-muted)", textAlign: "center" }}
+    >
+      최근 결제부터 보여드리고 있어요
+    </span>
+  );
+}
+
 function MyOrders({ nav, onCancel }: { nav: AppNav; onCancel: (order: Order) => void }) {
+  if (nav.paymentsStatus !== "ready") {
+    return <PaymentsPlaceholder status={nav.paymentsStatus} />;
+  }
+
   if (nav.orders.length === 0) {
     return (
       <Empty
@@ -343,15 +396,22 @@ function MyOrders({ nav, onCancel }: { nav: AppNav; onCancel: (order: Order) => 
   }
 
   return (
-    <CardGrid>
-      {nav.orders.map((order) => (
-        <OrderCard key={order.id} order={order} onCancel={onCancel} />
-      ))}
-    </CardGrid>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <CardGrid>
+        {nav.orders.map((order) => (
+          <OrderCard key={order.id} order={order} onCancel={onCancel} />
+        ))}
+      </CardGrid>
+      {nav.paymentsHasMore && <TruncatedNote />}
+    </div>
   );
 }
 
 function MyCancellations({ nav }: { nav: AppNav }) {
+  if (nav.paymentsStatus !== "ready") {
+    return <PaymentsPlaceholder status={nav.paymentsStatus} />;
+  }
+
   if (nav.cancellations.length === 0) {
     return (
       <Empty
@@ -363,10 +423,13 @@ function MyCancellations({ nav }: { nav: AppNav }) {
   }
 
   return (
-    <CardGrid>
-      {nav.cancellations.map((cancellation) => (
-        <CancellationCard key={cancellation.id} cancellation={cancellation} />
-      ))}
-    </CardGrid>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <CardGrid>
+        {nav.cancellations.map((cancellation) => (
+          <CancellationCard key={cancellation.id} cancellation={cancellation} />
+        ))}
+      </CardGrid>
+      {nav.paymentsHasMore && <TruncatedNote />}
+    </div>
   );
 }

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
+
 import { badRequest, fail, invalid, type Parsed } from "@/lib/bff/response";
 import type { Json } from "@/lib/supabase/database.types";
 import type { SupabaseAdminClient, SupabaseServerClient } from "@/lib/supabase/server";
@@ -44,7 +46,7 @@ export const MAX_PER_ORDER = 4;
 export const PAYMENT_TYPE = {
   /** 결제 완료. `amount` 는 **양수**. */
   paid: "PAYMENT",
-  /** 결제 취소(환불). `amount` 는 **음수**. 아직 구현하지 않았다 — `rules/payment.md` 참고. */
+  /** 결제 취소(환불). `amount` 는 **음수**. 쌓는 자리는 `paymentCancel.ts` 다. */
   cancelled: "CANCEL",
 } as const;
 
@@ -62,8 +64,8 @@ export function signedAmount(type: PaymentType, amount: number): number {
   return type === PAYMENT_TYPE.cancelled ? -magnitude : magnitude;
 }
 
-/** 포트원 REST API. 결제 단건 조회에만 쓴다. */
-const PORTONE_API_BASE = "https://api.portone.io";
+/** 포트원 REST API. 결제 단건 조회(여기)와 결제 취소(`paymentCancel.ts`)가 쓴다. */
+export const PORTONE_API_BASE = "https://api.portone.io";
 
 /* ------------------------------------------------------- 환경변수 · 설정 -- */
 
@@ -272,7 +274,7 @@ export type PaymentReceipt = {
  * 영수증을 `product` 테이블에서 다시 읽지 않는 이유다 — 운영자가 가격을 고치거나
  * 상품을 내리면(`status`) 지난 영수증의 내용까지 같이 바뀌어 버린다.
  */
-type ProductSnapshot = {
+export type ProductSnapshot = {
   id: string;
   name: string;
   event_at: string;
@@ -332,6 +334,41 @@ type CompleteResult =
  * (RLS 를 우회한다). 쿼리 모양은 같으므로 한 함수가 둘 다 받는다.
  */
 export type PaymentDb = SupabaseServerClient | SupabaseAdminClient;
+
+/* ------------------------------------------------------------ 스냅샷 기록 -- */
+
+/**
+ * 결제 시점을 얼려 넣고 그 id 를 돌려준다. **id 는 우리가 만들어서 넣는다.**
+ *
+ * `.insert().select("id")` 로 돌려받으면 안 된다. RETURNING 은 `payment_snapshot` 의
+ * SELECT 정책("이 스냅샷을 가리키는 `payment` 행이 내 것일 때")을 지나야 하는데, 삽입
+ * 시점에는 그 결제 행이 아직 없다 — 없어야 정상이다(`payment.payment_snapshot_id` 가
+ * NOT NULL 이라 스냅샷이 먼저다). 그래서 세션 클라이언트는 방금 넣은 자기 스냅샷을
+ * 스스로 읽지 못하고 `42501` 로 떨어진다. 웹훅의 admin 클라이언트만 RLS 를 우회해
+ * 통과하므로, 브라우저 경로에서만 나는 오류였다.
+ *
+ * id 를 먼저 정해 두면 돌려받을 것이 없다.
+ */
+export async function insertSnapshot(
+  supabase: PaymentDb,
+  snapshotPayment: PortonePayment,
+  snapshotProduct: ProductSnapshot,
+): Promise<string | null> {
+  const id = randomUUID();
+  const { error } = await supabase.from("payment_snapshot").insert({
+    id,
+    // 두 값 모두 jsonb 컬럼이다. 우리 타입에는 인덱스 시그니처가 있어 Json 과
+    // 구조적으로 맞아떨어지지 않으므로 한 번 못박아 넣는다.
+    snapshot_payment: snapshotPayment as unknown as Json,
+    snapshot_product: snapshotProduct as unknown as Json,
+  });
+
+  if (error) {
+    console.error("[bff:payment] 스냅샷 기록 실패", { paymentId: snapshotPayment.id, error });
+    return null;
+  }
+  return id;
+}
 
 /**
  * **구매자를 무엇으로 정하는가.** 완료 처리로 들어오는 길이 둘이라 여기서 갈린다.
@@ -517,20 +554,9 @@ export async function completePayment(
     headcount: custom.value.headcount,
   };
 
-  // 스냅샷 먼저. payment.payment_snapshot_id 가 NOT NULL 이라 id 를 먼저 얻어야 한다.
-  const { data: snapshot, error: snapshotError } = await supabase
-    .from("payment_snapshot")
-    .insert({
-      // 두 값 모두 jsonb 컬럼이다. 우리 타입에는 인덱스 시그니처가 있어 Json 과
-      // 구조적으로 맞아떨어지지 않으므로 한 번 못박아 넣는다.
-      snapshot_payment: payment as unknown as Json,
-      snapshot_product: snapshotProduct as unknown as Json,
-    })
-    .select("id")
-    .single();
-
-  if (snapshotError || !snapshot) {
-    console.error("[bff:payment] 스냅샷 기록 실패", { paymentId, error: snapshotError });
+  // 스냅샷 먼저. payment.payment_snapshot_id 가 NOT NULL 이라 id 를 먼저 알아야 한다.
+  const snapshotId = await insertSnapshot(supabase, payment, snapshotProduct);
+  if (!snapshotId) {
     return { ok: false, response: fail(500, "internal_error", "결제 기록에 실패했습니다.") };
   }
 
@@ -541,12 +567,12 @@ export async function completePayment(
     amount: signedAmount(PAYMENT_TYPE.paid, expected),
     product_id: productRow.id,
     user_id: buyerId,
-    payment_snapshot_id: snapshot.id,
+    payment_snapshot_id: snapshotId,
   });
 
   if (insertError) {
     // 방금 넣은 스냅샷을 되돌린다. PostgREST 는 두 호출을 한 트랜잭션으로 묶어 주지 않는다.
-    await supabase.from("payment_snapshot").delete().eq("id", snapshot.id);
+    await supabase.from("payment_snapshot").delete().eq("id", snapshotId);
 
     // 같은 결제 건이 동시에 두 번 들어온 경우 —— 브라우저와 웹훅이 겹치는 건 드문 일이
     // 아니다. 유니크 인덱스 `(transction_key, type)` 가 두 번째 행을 막아 주므로
