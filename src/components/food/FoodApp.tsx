@@ -13,16 +13,13 @@ import { PaymentCompleteScreen } from "./screens/PaymentCompleteScreen";
 import { authErrorMessage, useSession } from "./useSession";
 import { useProfile } from "./useProfile";
 import { usePlaceList } from "./usePlaces";
+import type { Receipt } from "./payments";
 import {
-  CANCELLATIONS,
-  ORDERS,
-  cancellationFromOrder,
-  orderFromReceipt,
-  type Cancellation,
-  type Order,
-  type Receipt,
-} from "./payments";
-import { completePayment as confirmPayment, receiptFrom } from "./usePayments";
+  cancelPayment,
+  completePayment as confirmPayment,
+  receiptFrom,
+  usePaymentHistory,
+} from "./usePayments";
 import type { AppNav, MyTabKey, ScreenKey } from "./types";
 
 type ToastState = { id: number; message: string; type: ToastType };
@@ -53,13 +50,17 @@ export function FoodApp() {
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<ToastState | null>(null);
   const toastSeq = useRef(0);
-  // 강연·모임 결제. 결제 자체는 포트원 + `payment` 테이블로 배선돼 있고
-  // (`rules/payment.md`), 여기 남은 내역·취소만 아직 화면 상태로 흐른다
-  // (`payments.ts` 의 고정값이 시작점이다).
+  // 강연·모임 결제. 결제·취소 모두 포트원 + `payment` 원장으로 배선돼 있다
+  // (`rules/payment.md`). 내역은 화면 상태가 아니라 `/api/payments` 에서 온다.
   const [productId, setProductId] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
-  const [orders, setOrders] = useState<Order[]>(ORDERS);
-  const [cancellations, setCancellations] = useState<Cancellation[]>(CANCELLATIONS);
+  const {
+    orders,
+    cancellations,
+    hasMore: paymentsHasMore,
+    status: paymentsStatus,
+    reload: reloadPayments,
+  } = usePaymentHistory(authenticated);
   const [myTab, setMyTab] = useState<MyTabKey>("posts");
   // 결제창에서 리다이렉트로 돌아온 직후. 결과를 확인하는 동안 화면을 잠근다.
   const [verifyingPayment, setVerifyingPayment] = useState(false);
@@ -111,18 +112,21 @@ export function FoodApp() {
     setBookmarks(new Set());
     setMyTab("posts");
     setReceipt(null);
-    // 결제·취소 내역도 화면 상태다. 안 지우면 다음 사람이 남의 내역을 본다.
-    setOrders(ORDERS);
-    setCancellations(CANCELLATIONS);
+    // 결제·취소 내역은 `usePaymentHistory` 가 로그인 여부를 보고 스스로 비운다.
     showToast("로그아웃했어요", "info");
   }, [signOut, showToast]);
 
-  const completePayment = useCallback((next: Receipt) => {
-    setReceipt(next);
-    // 방금 결제한 건이 결제 내역 맨 위에 보여야 "결제 내역 보기" 가 말이 된다.
-    setOrders((prev) => [orderFromReceipt(next, new Date()), ...prev]);
-    setScreen("payment-complete");
-  }, []);
+  const completePayment = useCallback(
+    (next: Receipt) => {
+      setReceipt(next);
+      // 방금 결제한 건이 결제 내역 맨 위에 보여야 "결제 내역 보기" 가 말이 된다.
+      // 그 한 줄은 원장에서 다시 읽는다 — 화면에서 만들어 얹으면 서버가 확정한 값과
+      // 미묘하게 다른 카드가 잠깐 보인다.
+      reloadPayments();
+      setScreen("payment-complete");
+    },
+    [reloadPayments],
+  );
 
   // 결제창에서 돌아온 길(모바일). `/payment/complete` 가 포트원의 결과를 앱이 아는
   // 이름으로 바꿔 달아 여기로 보낸다. PC 는 결제창 반환값으로 같은 일을 시트 안에서
@@ -162,17 +166,21 @@ export function FoodApp() {
     })();
   }, [authenticated, showToast, completePayment]);
 
-  // 옮길 건을 updater 밖에서 찾는다. updater 안에서 다른 state 를 건드리면
-  // StrictMode 가 두 번 부를 때 취소 내역이 두 줄로 늘어난다.
+  /**
+   * 결제 취소. 취소하고 원장에 남기는 일은 전부 BFF 가 한다
+   * (`POST /api/payments/[paymentId]/cancel`).
+   *
+   * 화면에서 목록을 직접 옮기지 않고 다시 읽는 이유는, 취소 금액·상태를 정하는 게
+   * 포트원과 원장이기 때문이다. 여기서 옮겨 두면 서버가 아직 확정하지 않은 상태가
+   * 화면에만 먼저 보인다.
+   */
   const cancelOrder = useCallback(
-    (orderId: string) => {
-      const target = orders.find((order) => order.id === orderId);
-      if (!target) return;
-      const now = new Date();
-      setOrders((prev) => prev.filter((order) => order.id !== orderId));
-      setCancellations((prev) => [cancellationFromOrder(target, now), ...prev]);
+    async (orderId: string) => {
+      const result = await cancelPayment(orderId);
+      if (result.ok) reloadPayments();
+      return result;
     },
-    [orders],
+    [reloadPayments],
   );
 
   const openMyTab = useCallback((tab: MyTabKey) => {
@@ -218,6 +226,8 @@ export function FoodApp() {
       cancelOrder,
       orders,
       cancellations,
+      paymentsStatus,
+      paymentsHasMore,
       myTab,
       openMyTab,
     };
@@ -238,6 +248,8 @@ export function FoodApp() {
     cancelOrder,
     orders,
     cancellations,
+    paymentsStatus,
+    paymentsHasMore,
     myTab,
     openMyTab,
   ]);

@@ -54,8 +54,11 @@
   (아래 "상품" 참고).
 - 결제 라우트: `/api/payments/config` — `GET`(결제창 키) · `/api/payments/complete` — `POST`
   (결제 완료 처리 · 멱등) · `/api/payments/webhook` — `POST`(포트원 웹훅 · **로그인 게이트
-  없음**, 서명으로 검증한다). 공용 로직은 `src/lib/bff/payment.ts` 와
-  `src/lib/bff/paymentWebhook.ts`.
+  없음**, 서명으로 검증한다. 결제 완료와 결제 취소를 같은 문으로 받는다) ·
+  `/api/payments` — `GET`(내 결제·취소 내역) ·
+  `/api/payments/[paymentId]/cancel` — `POST`(결제 취소 · 전액 환불 · 멱등).
+  공용 로직은 `src/lib/bff/payment.ts`(결제) · `paymentCancel.ts`(취소) ·
+  `paymentHistory.ts`(내역) · `paymentWebhook.ts`(서명 검증).
   **규칙의 원본은 `rules/payment.md` 다** — 결제 관련 작업은 거기부터 읽는다.
 - 지도 라우트: `/api/map/config` — `GET`. 지도 SDK 키만 내려준다. Supabase 를 타지 않는
   유일한 라우트다(아래 "장소 선택 · 지도" 참고).
@@ -268,16 +271,19 @@
 > 그 문서를 먼저 읽는다. 아래는 화면 쪽 요약일 뿐이고, 어긋나면 그쪽이 맞다.
 > 포트원 문서·API 스펙은 포트원 MCP 서버(`portone-mcp-server`)로 조회한다.
 
-- **결제는 포트원 V2 로 실제 배선돼 있다.** 카드 인증결제 한 갈래다.
-  상품은 DB 에서 오고(위 "상품" 참고), 결제 건은 `payment` / `payment_snapshot` 에 남는다.
-  아직 화면 상태로만 흐르는 건 **주문 내역 조회와 결제 취소** 둘뿐이다
-  (`FoodApp` 의 `orders` / `cancellations`). 붙일 때의 규칙은 `rules/payment.md` 9절에 있다.
-- **결제 완료 웹훅이 붙어 있다**(`POST /api/payments/webhook`). 결제창이 닫히다 만 건
-  (브라우저 종료·네트워크 끊김)을 확정하는 안전망이라, 브라우저 경로와 **서로의 안전망**
-  으로 먼저 도착한 쪽이 기록한다. 취소 웹훅은 아직 로그만 남긴다.
+- **결제·취소가 포트원 V2 로 실제 배선돼 있다.** 카드 인증결제 한 갈래이고, 환불은
+  전액 취소 한 갈래다. 상품은 DB 에서 오고(위 "상품" 참고), 결제·취소 건은
+  `payment` / `payment_snapshot` 에 남는다. 마이의 결제 내역 · 취소 내역도 그 원장에서
+  읽는다 — 화면 상태로 흐르던 고정값(`ORDERS` / `CANCELLATIONS`)은 걷어냈다.
+  아직 없는 것(부분 취소 · 가상계좌 · 내역 커서)은 `rules/payment.md` 9-3 · 9-4 에 있다.
+- **웹훅이 결제 완료와 결제 취소를 같은 문으로 받는다**(`POST /api/payments/webhook`).
+  결제창이 닫히다 만 건(브라우저 종료·네트워크 끊김)과 콘솔에서 직접 환불한 건을
+  확정하는 안전망이라, 브라우저 경로와 **서로의 안전망**으로 먼저 도착한 쪽이 기록한다.
 - 흐름은 한 줄이다: 메인 배너(`PromoBanner`) → 상품 상세(`BannerDetailScreen`) →
   결제 바텀시트 → **포트원 결제창** → `POST /api/payments/complete` →
   결제 완료(`PaymentCompleteScreen`) → 마이 · 결제 내역.
+  취소도 한 줄이다: 마이 · 결제 내역 → 확인 모달 →
+  `POST /api/payments/[paymentId]/cancel` → 원장에 음수 행 → 마이 · 취소 내역.
 - **결과가 돌아오는 길이 둘이다.** PC 는 `requestPayment()` 반환값으로, 모바일은
   `redirectUrl`(`/payment/complete`)로 온다. `forceRedirect` 를 켜지 않았기 때문이고,
   그래야 PC 에서 쓰던 화면을 잃지 않는다. 리다이렉트로 온 결과는 `/payment/complete` 가
@@ -303,17 +309,19 @@
 - `payment` 는 **insert-only 원장**이다. 결제·취소를 `type` 으로 가르고 `transction_key`
   (= 포트원 `paymentId`)로 묶는다. 금액은 **결제 +, 취소 −** 라 그룹의 `sum(amount)` 이 곧
   남은 금액이다. 중복 결제는 유니크 `(transction_key, type)` 가 막는다.
-- 결제가 끝나면 결제 내역 맨 위에 그 건이 얹힌다. 그래야 완료 화면의 "결제 내역 보기" 가
-  빈 목록으로 떨어지지 않는다.
-- 결제 취소는 결제 내역에서 빼고 취소 내역으로 옮긴다(전액 환불로만 다룬다). 옮길 건은
-  `setState` updater **밖에서** 찾는다 — updater 안에서 다른 state 를 건드리면 StrictMode 가
-  두 번 부를 때 취소 내역이 두 줄이 된다.
+- 결제·취소가 끝나면 내역을 **다시 읽는다**(`usePaymentHistory().reload()`). 화면에서
+  카드를 만들어 얹거나 목록 사이로 옮기지 않는다 — 금액·상태를 정하는 건 포트원과
+  원장이고, 화면이 앞질러 만들면 서버가 확정한 값과 다른 카드가 잠깐 보인다.
+  결제 내역과 취소 내역은 **한 요청**으로 같이 받는다(따로 부르면 그 사이에 취소가
+  끼어들 때 같은 건이 양쪽에 다 보이거나 양쪽에서 다 사라진다).
 - 취소 기한이 지난 건(`cancellable: false`)은 버튼 대신 이유를 남긴다. 눌리는데 아무 일도
-  안 일어나는 버튼보다 낫다.
+  안 일어나는 버튼보다 낫다. **판정은 서버가 한다**(`isCancellable` — 행사 시작 전까지).
+  화면 문구 `REFUND_POLICY` 도 같은 값이어야 한다.
 - 마이 화면의 탭 상태(`myTab`)는 `FoodApp` 이 들고 있다. 결제 완료 화면이 "결제 내역" 탭을
   바로 열어야 해서(`openMyTab`), 마이 화면 안에만 두면 밖에서 지정할 수가 없다.
-- 로그아웃하면 결제·취소 내역도 초기값으로 되돌린다. 화면 상태라 안 지우면 다음 사람이
-  남의 내역을 본다.
+- 로그아웃하면 `usePaymentHistory` 가 로그인 여부를 보고 스스로 목록을 비운다.
+  `usePlaceList` 와 같은 규약으로 effect 가 아니라 **렌더 중에** 맞춘다 — effect 로 하면
+  다음 사람에게 이전 사용자의 내역이 한 프레임 보인다.
 - 배너·상세 사진은 이제 `product-image` 버킷에서 온다. `public/images/banner-tour*.png`
   (디자인의 생성 이미지)는 더 이상 아무도 참조하지 않는다.
 
@@ -322,6 +330,7 @@
 - 셸 프리미티브 재사용: `src/components/food/shell.tsx`
 - 리스트형(메인·마이): 컨테이너 max-width `1280`, 카드 그리드 `repeat(auto-fill, minmax(320px, 1fr))`, gap `12`.
   마이의 세 탭(내가 쓴 글·결제 내역·취소 내역)은 모두 같은 카드 그리드를 쓴다.
+  세 탭 다 목록을 서버에서 받으므로 로딩(`Spinner`)·오류(`Empty`) 자리도 같은 모양이다.
 - 읽기·폼형(상세·등록·장소 검색·장소 선택·배너 상세·결제 완료): max-width `760`.
   로그인: max-width `480`. 결제 바텀시트도 `maxWidth={760}` 으로 같이 잡는다.
 - 컨테이너 중앙 정렬, 좌우 패딩 `clamp(16px, 4vw, 32px)`, 초과분은 좌우 여백.

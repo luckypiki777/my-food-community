@@ -18,10 +18,12 @@
 | 카드 결제(인증결제) | **있다** | 배너 상세 → 결제 시트 |
 | 서버 결제 검증·기록 | **있다** | `POST /api/payments/complete` |
 | 결제 완료 웹훅 | **있다** | `POST /api/payments/webhook` |
-| 결제 취소 웹훅 | 없다 | 9-1 |
-| 결제 취소·환불 | 없다(화면 상태로만 흐른다) | 9-2 |
+| 결제 취소·환불(전액) | **있다** | 마이 · 결제 내역 → `POST /api/payments/[paymentId]/cancel` |
+| 결제 취소 웹훅 | **있다** | `POST /api/payments/webhook` |
+| 결제·취소 내역 조회 | **있다** | `GET /api/payments` |
+| 부분 취소 | 없다 | 9-3 |
 | 가상계좌·간편결제 | 없다 | 9-3 |
-| 결제 내역 조회 API | 없다(화면 상태로만 흐른다) | 9-4 |
+| 내역 페이지네이션(커서) | 없다(상한만 있다) | 9-4 |
 
 ## 3. 흐름
 
@@ -39,12 +41,26 @@
 - **리다이렉트가 돌아오는 자리**(`app/payment/complete/page.tsx`)는 아무것도 그리지 않는다. 포트원 쿼리(`paymentId`/`code`/`message`)를 앱이 아는 이름(`payment_id`/`payment_error`/`payment_message`)으로 바꿔 `/` 로 307 한다. 모바일은 돌아온 시점에 React 상태가 다 날아간 뒤라, 결과 판정과 화면은 PC 와 똑같이 `FoodApp` 한 곳에서 한다.
 - **웹훅과 브라우저는 서로의 안전망이다.** 도착 순서는 보장되지 않고, 먼저 온 쪽이 기록한다. 멱등하므로 순서는 상관없다.
 
+취소도 같은 모양이다.
+
+```
+마이 · 결제 내역 → [결제 취소]
+  → POST /api/payments/[paymentId]/cancel   ← 브라우저는 주문 번호만 보낸다
+  → 포트원 결제 취소 API                     ← 서버. 시크릿이 필요하다
+  → recordCancellation()  ┐
+  → 취소 웹훅              ┘ 둘 다 같은 함수로 모인다
+  → payment_snapshot · payment(type: CANCEL, 음수) 기록 → 취소 내역
+```
+
+- **취소도 브라우저 말을 믿지 않는다.** 취소 금액은 요청 본문이 아니라 포트원 결제 조회의 `amount.cancelled` 에서 읽는다.
+- **취소는 새 행이다.** 결제 행을 고치지 않는다 — 8절의 원장 규칙 그대로다.
+
 ## 4. 환경변수와 키
 
 | 이름 | 어디까지 나가나 | 쓰는 곳 |
 |---|---|---|
 | `PORTONE_STORE_ID` · `PORTONE_CHANNEL_KEY` | 브라우저까지 | 결제창 |
-| `PORTONE_API_SECRET` | **서버 밖으로 안 나간다** | 결제 조회 · (장차)취소 |
+| `PORTONE_API_SECRET` | **서버 밖으로 안 나간다** | 결제 조회 · 결제 취소 |
 | `PORTONE_WEBHOOK_SECRET` | **서버 밖으로 안 나간다** | 웹훅 서명 검증 |
 | `SUPABASE_SECRET_KEY` | **서버 밖으로 안 나간다** | 웹훅의 DB 기록(RLS 우회) |
 
@@ -91,17 +107,26 @@
 
 ## 7. 웹훅
 
-`POST /api/payments/webhook`. 결제창이 닫히다 만 건(브라우저 종료·네트워크 끊김)을 확정하는 안전망이다.
+`POST /api/payments/webhook`. **결제 완료와 결제 취소를 같은 문으로 받는다.** 결제창이 닫히다 만 건(브라우저 종료·네트워크 끊김)과, 콘솔에서 직접 환불한 건을 확정하는 안전망이다.
 
-- **로그인 게이트를 두지 않는다** — 부르는 쪽이 포트원 서버다. 대신 두 겹으로 막는다: 요청의 진위는 **서명 검증**이, 결제의 진위는 **포트원 결제 조회**가 판정한다.
+- **로그인 게이트를 두지 않는다** — 부르는 쪽이 포트원 서버다. 대신 두 겹으로 막는다: 요청의 진위는 **서명 검증**이, 결제·취소의 진위는 **포트원 결제 조회**가 판정한다. 금액조차 본문에서 읽지 않는다.
 - **서명은 `@portone/server-sdk` 의 `Webhook.verify(secret, body, headers)`** 로 검증한다(Standard Webhooks · 웹훅 버전 `2024-04-25`). 실패는 400 으로 끊는다.
 - **본문은 원문 문자열이어야 한다.** `request.text()` 로 받는다. JSON 으로 파싱한 뒤 다시 직렬화하면 서명이 깨진다.
-- **하는 일은 `completePayment()` 를 부르는 것뿐이다.** 검증 로직을 따로 만들지 않는다 — 6절의 표가 유일한 판정 기준이어야 한다.
-- 처리하는 이벤트는 **`Transaction.Paid` 하나**다. 포트원은 예고 없이 새 `type` 을 추가하므로 **모르는 이벤트에 오류를 내지 말고 무시**한다. 취소 계열은 아직 처리하지 않지만(9-1) 로그는 남긴다 — 콘솔에서 환불한 건이 원장과 어긋난 사실이 보여야 한다.
+- **하는 일은 `completePayment()`(결제) 또는 `recordCancellation()`(취소)을 부르는 것뿐이다.** 검증 로직을 따로 만들지 않는다.
+- 처리하는 이벤트는 넷이다.
+
+  | `type` | 하는 일 |
+  |---|---|
+  | `Transaction.Paid` | `completePayment()` — 6절의 표를 그대로 지난다 |
+  | `Transaction.Cancelled` | `recordCancellation()` — 전액 취소 |
+  | `Transaction.PartialCancelled` | `recordCancellation()` — 첫 건만 기록된다(9-3) |
+  | `Transaction.CancelPending` | `recordCancellation()` — 아직 취소 금액이 0 이라 기록 없이 200 |
+
+- 포트원은 예고 없이 새 `type` 을 추가하므로 **모르는 이벤트에 오류를 내지 말고 무시**한다.
 - **응답 코드가 곧 재전송 지시다.** 포트원은 2xx 가 아니면 최대 5회(0·1·4·16·64·256분) 재전송한다. Connection/Read Timeout 은 각 30초.
   - **2xx** — 다 됐거나, 다시 불러도 답이 안 바뀌는 경우(위변조 의심 · 우리 상점 아님 · 모르는 이벤트 · uuid 아닌 결제 건).
   - **400** — 서명 검증 실패. 포트원이 보낸 게 아니다.
-  - **503** — 지금은 못 하지만 나중엔 될 수 있는 경우(포트원 조회 실패 · DB 오류 · 설정 누락 · `payment_pending`). 재전송이 곧 복구다.
+  - **503** — 지금은 못 하지만 나중엔 될 수 있는 경우(포트원 조회 실패 · DB 오류 · 설정 누락 · `payment_pending` · 아직 기록되지 않은 결제의 취소). 재전송이 곧 복구다.
 - **여기서만 RLS 를 우회한다**(`createSupabaseAdminClient()`). 세션이 없어 `auth.uid() = user_id` 정책을 만족시킬 방법이 없기 때문이다. **다른 라우트로 이 키를 넓히지 않는다** — 넓히는 순간 RLS 가 방어선 역할을 못 한다.
 
 ## 8. 데이터 모델
@@ -118,6 +143,8 @@
 
 **상태 컬럼이 없다. 일부러 그렇다.** 결제도 취소도 각각 한 행으로 쌓고, 지금 상태는 같은 `transction_key` 를 가진 행들을 모아서 읽는다 — `sum(amount)` 가 곧 남은 결제 금액이다. 그래서 기록을 고치는 일이 없고, RLS 에도 update/delete 정책을 두지 않았다. (컬럼명 `transction_key` 의 오타는 원본 스키마 그대로다.)
 
+**한 결제 건에 취소 행은 최대 하나다** — 유니크 `(transction_key, type)` 가 그렇게 만든다. 전액 취소만 다루는 지금은 이게 맞고, 부분 취소를 열려면 유니크부터 다시 설계해야 한다(9-3).
+
 DB 도 같은 규칙이다(마이그레이션 `payment_ledger_group_key_and_amount_sign`): 유니크 `(transction_key, type)` · `payment_type_check` · `payment_amount_sign`. **코드(`PAYMENT_TYPE` · `signedAmount()`)와 같은 값이다. 한쪽만 바꾸면 안 된다.**
 
 ### `payment_snapshot` — 결제 시점을 얼린다
@@ -128,37 +155,50 @@ DB 도 같은 규칙이다(마이그레이션 `payment_ledger_group_key_and_amou
 
 - `payment` — 본인 것만 읽고 본인 것만 넣는다. update/delete 정책은 없다.
 - `payment_snapshot` — 읽기는 "이 스냅샷을 가리키는 `payment` 행이 내 것일 때". 삽입은 `with check (true)` 다. `payment.payment_snapshot_id` 가 NOT NULL 이라 스냅샷을 **먼저** 넣어야 하는데 그 시점엔 아직 주인이 없기 때문이다.
-- 인덱스(`payment_foreign_key_indexes`) — 스냅샷 읽기 정책이 `payment.payment_snapshot_id` 를 되짚으므로 그 인덱스가 **정책의 성능 전제**다. `(user_id, created_at desc)` 는 9-4 의 내역 목록이 쓸 축이다.
-- 쓰기 순서와 되돌리기: **스냅샷 → 결제 행.** PostgREST 는 두 호출을 한 트랜잭션으로 묶어 주지 않으므로, 결제 행 삽입이 실패하면 방금 넣은 스냅샷을 지운다.
+- 인덱스(`payment_foreign_key_indexes`) — 스냅샷 읽기 정책이 `payment.payment_snapshot_id` 를 되짚으므로 그 인덱스가 **정책의 성능 전제**다. `(user_id, created_at desc)` 는 9-4 의 내역 목록이 타는 축이다.
+- 쓰기 순서와 되돌리기: **스냅샷 → 결제 행.** PostgREST 는 두 호출을 한 트랜잭션으로 묶어 주지 않으므로, 결제 행 삽입이 실패하면 방금 넣은 스냅샷을 지운다. 취소도 같다 — **스냅샷 → 취소 행.**
+- **스냅샷 id 는 서버가 만들어서 넣는다**(`insertSnapshot()` 의 `randomUUID()`). `.insert().select("id")` 로 돌려받으면 안 된다: RETURNING 은 스냅샷의 SELECT 정책("이 스냅샷을 가리키는 `payment` 행이 내 것일 때")을 지나야 하는데, 삽입 시점엔 그 결제 행이 아직 없다(있으면 안 된다 — `payment_snapshot_id` 가 NOT NULL 이라 스냅샷이 먼저다). 그래서 세션 클라이언트는 방금 넣은 자기 스냅샷을 스스로 읽지 못하고 `42501` 로 떨어진다. **웹훅의 admin 클라이언트만 RLS 를 우회해 통과했으므로 브라우저 경로에서만 나던 오류다.** id 를 먼저 정하면 돌려받을 것이 없다.
 
-## 9. 아직 안 붙인 것 — 붙일 때의 규칙
+## 9. 결제 취소 · 내역
+
+전액 취소 한 갈래다. 취소가 원장에 쌓이는 자리는 `recordCancellation()`(`lib/bff/paymentCancel.ts`) **하나뿐**이다 — 우리가 부른 취소도 웹훅으로 한 번 더 돌아오므로, 두 경로가 서로 다른 행을 만들면 같은 취소가 원장에 두 줄로 남는다.
 
 ### 9-1. 취소 웹훅
 
-`Transaction.Cancelled`(전액) · `Transaction.PartialCancelled`(부분) · `Transaction.CancelPending`(비동기 취소 요청). 지금은 로그만 남기고 200 으로 받는다.
+`Transaction.Cancelled`(전액) · `Transaction.PartialCancelled`(부분) · `Transaction.CancelPending`(비동기 취소 요청).
 
-- 라우트·서명 검증·응답 코드 규약은 **7절 그대로 재사용**한다. 새 라우트를 만들지 않는다.
-- **취소는 새 행이다.** 기존 `payment` 행을 고치지 않는다 — 같은 `transction_key` 에 `type: 'CANCEL'` · **음수 `amount`** 로 한 행을 더 쌓는다. 스냅샷도 취소 응답으로 한 벌 더 만든다.
-- 금액은 웹훅 본문이 아니라 **포트원 결제 조회의 `amount.cancelled`** 에서 읽는다. 그 값은 누적 취소액이므로 **직전까지 쌓인 취소 합과의 차액**만 넣는다(`-(amount.cancelled - abs(sum(기존 CANCEL)))`). 그래야 `sum(amount)` 이 남은 금액과 맞는다.
-- **멱등해야 한다.** 재전송·중복 취소 웹훅은 흔하다. 차액이 0이면 아무것도 넣지 않고 200 으로 끝낸다. 유니크 `(transction_key, type)` 만으로는 부분 취소 여러 건을 구분하지 못하므로, 부분 취소를 열 때 `cancellationId` 컬럼을 더해 유니크를 다시 설계한다.
+- 라우트·서명 검증·응답 코드 규약은 **7절 그대로**다. 새 라우트를 만들지 않았다.
+- **취소는 새 행이다.** 기존 `payment` 행을 고치지 않는다 — 같은 `transction_key` 에 `type: 'CANCEL'` · **음수 `amount`** 로 한 행을 더 쌓는다. 스냅샷도 취소 시점 응답으로 한 벌 더 만든다.
+- 금액은 웹훅 본문이 아니라 **포트원 결제 조회의 `amount.cancelled`** 에서 읽는다. 그 값은 누적 취소액이므로 **직전까지 쌓인 취소 합과의 차액**만 넣는다. 그래야 `sum(amount)` 이 남은 금액과 맞는다.
+- **멱등하다.** 재전송·중복 취소 웹훅은 흔하다. 이미 취소 행이 있으면 그대로 돌려주고, 차액이 0이면(=`CancelPending`) 아무것도 넣지 않고 200 으로 끝낸다.
 - 취소 행의 `user_id`·`product_id` 는 **원 결제 행에서 가져온다.** `customData` 를 다시 믿지 않는다.
+- **원 결제 행이 없으면 503 으로 재전송을 부탁한다.** 브라우저 완료 처리가 아직 도착하지 않았을 수 있다. 취소 행만 먼저 쌓으면 `sum(amount)` 이 음수가 된다.
 
 ### 9-2. 결제 취소·환불 (우리가 먼저 부르는 쪽)
 
-- 라우트는 `POST /api/payments/[paymentId]/cancel`. 포트원 취소 API 를 서버에서 부른다. 권한은 본인 것만이고, RLS 의 select 정책이 그 게이트다.
-- 원장 기록은 9-1 과 **같은 함수**를 타야 한다. 우리가 부른 취소도 웹훅으로 한 번 더 돌아오므로, 두 경로가 서로 다른 행을 만들면 안 된다.
-- 취소 가능 여부의 판단 근거는 **`REFUND_POLICY` 가 아니라 코드**여야 한다. 지금 그 상수는 화면 문구일 뿐 아무것도 강제하지 않는다. 부분 환불(행사 3일 전 50%)을 다루려면 금액 계산 규칙을 이 문서에 먼저 적고 구현한다.
+라우트는 `POST /api/payments/[paymentId]/cancel`. 포트원 취소 API 를 **서버에서** 부른다 — `PORTONE_API_SECRET` 하나면 남의 결제까지 취소할 수 있으므로 브라우저로 내려보내지 않는다.
 
-### 9-3. 카드 외의 결제 수단
+- **권한 게이트는 RLS 다.** 원 결제 행을 세션 클라이언트로 읽으므로, 남의 결제 건 ID 를 넣으면 행이 보이지 않고 404 로 끝난다.
+- 원장 기록은 9-1 과 **같은 함수**(`recordCancellation()`)를 탄다.
+- **멱등하다.** 이미 취소 행이 있으면 포트원을 부르지 않고 그 행을 그대로 돌려준다. 포트원이 `PAYMENT_ALREADY_CANCELLED`(콘솔에서 먼저 환불했거나 웹훅이 앞섰다)를 주면 오류가 아니라 기록만 이어서 한다.
+- **취소 가능 여부의 판단 근거는 `REFUND_POLICY` 가 아니라 `isCancellable()`(`lib/bff/paymentHistory.ts`) 이다.** 지금 규칙은 **행사 시작 전까지 전액 환불** 하나다. 화면 문구(`REFUND_POLICY`)도 같은 값이어야 한다 — 문구는 아무것도 강제하지 못하므로, 어긋나면 안내와 실제 동작이 갈라진다. (전에는 "행사 7일 전까지 전액 · 3일 전까지 50%" 라고 적혀 있었지만 부분 환불은 구현된 적이 없다.)
+- 취소 기한의 근거인 `event_at` 은 **결제 시점 스냅샷**에서 읽는다. 운영자가 나중에 행사 날짜를 옮겨도 이미 산 사람의 기한은 움직이지 않는다 — 내역 카드에 보이는 일시와 기한의 근거가 같은 값이어야 하기 때문이다. 날짜를 옮겼을 때 기한도 따라가야 한다면 그건 `product` 를 다시 읽는 별도 규칙이므로 여기 먼저 적는다.
+- 부분 환불을 열려면 **금액 계산 규칙을 이 문서에 먼저 적고** 구현한다.
 
-가상계좌는 결제창을 닫는 시점에 아직 입금 전(`VIRTUAL_ACCOUNT_ISSUED`)이라 웹훅 없이는 입금 사실을 알 방법이 없었다. 이제 다룰 수 있다 — 7절의 처리 이벤트에 `Transaction.VirtualAccountIssued` 를 더하고, 6절 5번의 상태 판정을 상태별로 가른다. PG사마다 지원 수단이 다르니 채널을 늘리기 전에 포트원 MCP 로 해당 PG 가이드를 읽는다.
+### 9-3. 아직 안 붙인 것
+
+- **부분 취소.** 유니크 `(transction_key, type)` 가 한 결제 건에 취소 행 하나만 허용한다. 첫 부분 취소는 기록되고 그다음은 이미 있는 행으로 돌아가므로 원장이 실제 환불액과 어긋난다 — 웹훅 라우트가 그때 경고를 남긴다. 열 때는 `cancellationId` 컬럼을 더해 유니크를 다시 설계한다.
+- **가상계좌·간편결제.** 가상계좌는 결제창을 닫는 시점에 아직 입금 전(`VIRTUAL_ACCOUNT_ISSUED`)이다. 7절의 처리 이벤트에 `Transaction.VirtualAccountIssued` 를 더하고, 6절 5번의 상태 판정을 상태별로 가른다. 취소도 비동기라 `CancelPending` → `Cancelled` 두 걸음을 밟는다(그 자리는 이미 열려 있다). PG사마다 지원 수단이 다르니 채널을 늘리기 전에 포트원 MCP 로 해당 PG 가이드를 읽는다.
 
 ### 9-4. 결제·취소 내역 조회
 
-- `GET /api/payments` 를 만들고 `useProducts.ts` 처럼 훅 하나로 갈아끼운다. 화면은 `payments.ts` 의 타입만 보고 있으므로 그 밑만 바뀐다.
-- 목록은 `payment` 를 `transction_key` 로 묶어 읽는다(결제 + 취소가 각각 행이므로). 카드 내용은 스냅샷에서 만든다 — `product` 를 조인하지 않는다.
-- 정렬·페이지네이션은 `created_at + id` 키셋으로. `payment.id` 는 uuid 라 단독으로는 정렬 기준이 못 된다.
-- 이게 붙으면 로그아웃 시 내역을 비우는 코드(`FoodApp` 의 `setOrders(ORDERS)`)는 지운다.
+`GET /api/payments`. 마이 화면의 두 탭이 **한 요청**으로 받아 간다.
+
+- **탭이 둘이라고 요청을 둘로 나누지 않는다.** 결제와 취소는 같은 원장에서 오고, 한 건이 취소되면 결제 내역에서 빠져 취소 내역으로 옮겨간다 — 따로 부르면 그 사이에 취소가 끼어들 때 같은 건이 양쪽에 다 보이거나 양쪽에서 다 사라진다.
+- 목록은 `payment` 를 `transction_key` 로 묶어 읽는다. **두 번 읽는다** — 결제 행을 페이지만큼 읽고, 그 키들의 취소 행을 이어서 읽는다. 한 번에 읽으면 페이지 경계가 묶음 한가운데를 갈라 "결제는 있는데 취소가 안 보이는" 줄이 생긴다.
+- 카드 내용은 **스냅샷에서** 만든다 — `product` 를 조인하지 않는다. 운영자가 가격을 고치거나 상품을 내려도 지난 내역이 같이 바뀌면 안 된다.
+- **커서가 없다.** `?limit=`(기본 20, 최대 50)만 받고, 넘친 사실은 `hasMore` 로 알려 화면이 안내 한 줄을 붙인다. 키셋은 `created_at + id` 여야 하는데(`payment.id` 는 uuid 라 단독으로는 정렬 기준이 못 된다) 마이크로초 타임스탬프를 필터 문자열로 왕복시켜야 해서, 한 사람의 신청 내역 길이에 비해 값이 맞지 않는다. 내역이 길어지면 그때 짠다.
+- 화면 쪽 짝은 `usePayments.ts` 의 `usePaymentHistory` 다. `Order.status` 의 "이용 완료" 는 컬럼이 아니라 **행사가 지났는지**로 정한다 — 서버가 미리 정해 주면 응답을 받아 둔 채 시간이 지났을 때 카드가 계속 "결제 완료" 로 남는다.
 
 ## 10. 테스트 → 운영 전환 체크리스트
 
@@ -166,8 +206,9 @@ DB 도 같은 규칙이다(마이그레이션 `payment_ledger_group_key_and_amou
 - [ ] 6절의 `channel.type !== "LIVE"` 검사를 **켠다.** 테스트 결제가 운영 원장에 섞이면 정산이 어긋난다.
 - [ ] `PORTONE_API_SECRET` · `PORTONE_WEBHOOK_SECRET` · `SUPABASE_SECRET_KEY` 를 운영 환경의 시크릿으로 넣는다. 저장소·설정 파일에 두지 않는다.
 - [ ] 콘솔의 **실연동** 모드에 웹훅 URL(`/api/payments/webhook`)과 시크릿을 따로 넣는다. 테스트 모드 설정은 실연동에 적용되지 않는다.
-- [ ] 취소 웹훅(9-1)을 붙인다. 없으면 콘솔에서 환불한 건이 우리 원장과 어긋난다.
+- [ ] 콘솔의 **실연동** 모드 웹훅에 취소 계열 이벤트가 켜져 있는지 본다. 라우트는 이미 받는다(9-1).
 - [ ] 모바일 실기기에서 리다이렉트 갈래를 확인한다. PC 만 보고 넘기면 모바일에서만 깨진다.
+- [ ] 결제 → 취소 → 결제 내역/취소 내역까지 한 바퀴 돌려 본다. `sum(amount)` 이 0 이 되는지 콘솔에서 확인한다.
 
 ## 11. 같이 바꿔야 하는 짝
 
@@ -180,6 +221,8 @@ DB 도 같은 규칙이다(마이그레이션 `payment_ledger_group_key_and_amou
 | `customData` 키 이름 | `components/food/portone.ts` | `lib/bff/payment.ts` (+ 지난 스냅샷들) |
 | 리다이렉트 파라미터 이름 | `app/payment/complete/page.tsx` | `components/food/FoodApp.tsx` |
 | `PaymentReceipt` 모양 | `lib/bff/payment.ts` | `components/food/portone.ts` |
+| `OrderEntry` · `CancellationEntry` 모양 | `lib/bff/paymentHistory.ts` | `components/food/usePayments.ts` |
+| 취소 기한 (행사 시작 전) | `lib/bff/paymentHistory.ts` 의 `isCancellable()` | `components/food/payments.ts` 의 `REFUND_POLICY` 문구 |
 
 ## 12. 파일 지도
 
@@ -187,10 +230,15 @@ DB 도 같은 규칙이다(마이그레이션 `payment_ledger_group_key_and_amou
 |---|---|
 | `rules/payment.md` | **이 문서. 결제 규칙의 원본.** |
 | `lib/bff/payment.ts` | 검증 · 포트원 조회 · 기록(`completePayment`). 서버 전용 |
+| `lib/bff/paymentCancel.ts` | 포트원 취소 호출 · 취소 기록(`recordCancellation`). 서버 전용 |
+| `lib/bff/paymentHistory.ts` | 내역 조회 · 취소 기한(`isCancellable`) · 카드 조립. 서버 전용 |
 | `lib/bff/paymentWebhook.ts` | 웹훅 서명 검증 · 이벤트 분류. 서버 전용 |
 | `app/api/payments/{config,complete,webhook}/route.ts` | 결제창 설정(GET) · 완료 처리(POST) · 웹훅(POST) |
+| `app/api/payments/route.ts` | 결제·취소 내역(GET) |
+| `app/api/payments/[paymentId]/cancel/route.ts` | 결제 취소(POST) |
 | `app/payment/complete/page.tsx` | 결제창이 돌아오는 자리. 앱으로 넘기기만 한다 |
-| `components/food/portone.ts` · `usePayments.ts` | 결제창 호출 · 화면용 훅. 화면은 이 둘만 안다 |
+| `components/food/portone.ts` · `usePayments.ts` | 결제창 호출 · 화면용 훅(`usePayment` · `usePaymentHistory` · `cancelPayment`). 화면은 이 둘만 안다 |
+| `components/food/screens/MyScreen.tsx` | 마이 · 결제 내역 / 취소 내역 탭 |
 | `components/food/screens/BannerDetailScreen.tsx` | 상품 상세 + 결제 시트 |
 | `components/food/FoodApp.tsx` | 리다이렉트 귀환 처리 · 완료 화면 전환 |
 | `components/food/payments.ts` | 화면이 쓰는 타입과 문구(상품 DB 에 없는 값) |
