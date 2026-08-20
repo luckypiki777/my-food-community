@@ -139,6 +139,9 @@ export function parsePaymentId(raw: unknown): Parsed<string> {
  * 전체 스키마는 포트원 OpenAPI 의 `PaidPayment` 다. 스냅샷에는 응답 전체를 그대로
  * 넣으므로, 여기 없는 필드가 필요해지면 DB 에서 꺼내 쓸 수 있다.
  */
+/** 결제에 쓰인 카드. 카드 결제는 `method.card`, 간편결제는 `method.easyPayMethod.card` 다. */
+type PortoneCard = { name?: string; number?: string; issuer?: string; brand?: string };
+
 export type PortonePayment = {
   status: string;
   id: string;
@@ -151,7 +154,11 @@ export type PortonePayment = {
   channel?: { type?: string; name?: string; pgProvider?: string };
   method?: {
     type?: string;
-    card?: { name?: string; number?: string; issuer?: string; brand?: string };
+    card?: PortoneCard;
+    /** 간편결제 제공자(`TOSSPAY` 등). `type` 이 `PaymentMethodEasyPay` 일 때만 있다. */
+    provider?: string;
+    /** **간편결제는 카드가 여기 한 겹 안에 있다.** 아래 `formatPayMethod` 참고. */
+    easyPayMethod?: { type?: string; card?: PortoneCard };
   };
   paidAt?: string;
   receiptUrl?: string;
@@ -286,15 +293,35 @@ export type ProductSnapshot = {
   headcount: number;
 };
 
-/** 결제 수단 한 줄. 카드가 아니거나 정보가 없으면 있는 만큼만 쓴다. */
+/**
+ * 결제 수단 한 줄. 카드가 아니거나 정보가 없으면 있는 만큼만 쓴다.
+ *
+ * **간편결제는 카드가 한 겹 안에 들어 있다.** 결제창에 `payMethod: "CARD"` 를 넘겨도
+ * 사용자가 결제창에서 토스페이 같은 간편결제를 고르면 응답이
+ * `method.type: "PaymentMethodEasyPay"` 로 오고, 카드는 `method.card` 가 아니라
+ * `method.easyPayMethod.card` 에 실린다. 위만 보면 실제로 카드로 냈는데도 영수증에
+ * "카드" 라고만 찍힌다(2026-08-19 테스트 결제에서 실제로 그랬다).
+ */
 export function formatPayMethod(payment: PortonePayment): string {
-  const card = payment.method?.card;
+  const card = payment.method?.card ?? payment.method?.easyPayMethod?.card;
   if (!card) return "카드";
-  // number 는 마스킹된 카드 번호다. 뒤 4자리만 뽑는다.
-  const digits = card.number?.replace(/\D/g, "") ?? "";
-  const tail = digits.length >= 4 ? digits.slice(-4) : "";
   const name = card.name ?? "카드";
+  const tail = maskedTail(card.number);
   return tail ? `${name} ${tail}` : name;
+}
+
+/**
+ * 마스킹된 카드 번호에서 보여줄 뒷자리.
+ *
+ * 전부 이어 붙여서 뒤 4자리를 자르면 안 된다 — `"37997170****69*"` 는 숫자만 남기면
+ * `"3799717069"` 가 되어 앞 BIN 번호 두 자리가 "뒷자리" 로 섞여 들어간다. 마스크
+ * **뒤쪽 숫자 덩어리**만 쓴다. 가려진 자리는 우리도 모르므로 아는 만큼만 보여준다.
+ */
+function maskedTail(number: string | undefined): string {
+  const groups = number?.match(/\d+/g);
+  if (!groups || groups.length < 2) return "";
+  const tail = groups[groups.length - 1];
+  return tail.length >= 2 && tail.length <= 4 ? tail : "";
 }
 
 function toReceipt(
